@@ -1,4 +1,4 @@
-name: Release
+name: Manual Release
 
 on:
   workflow_dispatch:
@@ -24,18 +24,15 @@ jobs:
         uses: googleapis/release-please-action@v4
         with:
           release-type: node
-          command: manifest
           token: ${{ secrets.GITHUB_TOKEN }}
-          monorepo-tags: true
           default-branch: main
           manifest-file: .rp-manifest.json
           config-file: rp-config.json
+          release-as: patch # <-- always create a patch release
 
   build-and-publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
