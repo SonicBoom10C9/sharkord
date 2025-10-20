@@ -19,30 +19,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run Release Please (Manifest)
-        id: release
-        uses: googleapis/release-please-action@v4
-        with:
-          release-type: node
-          token: ${{ secrets.GITHUB_TOKEN }}
-          default-branch: main
-          manifest-file: .rp-manifest.json
-          config-file: rp-config.json
-          release-as: patch # <-- always create a patch release
-
   build-and-publish:
-    needs: release-please
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
