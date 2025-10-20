@@ -25,25 +25,24 @@ const { values } = parseArgs({
 
 if (!values.bump) {
   console.error(
-    'Please provide a version bump type with --bump (major, minor, patch)'
+    'Please provide a version bump type with --bump (major, minor, patch, none)'
   );
   process.exit(1);
-} else if (!['major', 'minor', 'patch'].includes(values.bump)) {
-  console.error('Invalid bump type');
-  process.exit(1);
 }
 
-const newVersion = semver.inc(
-  await getCurrentVersion(),
-  values.bump as semver.ReleaseType
-);
+if (values.bump !== 'none') {
+  const newVersion = semver.inc(
+    await getCurrentVersion(),
+    values.bump as semver.ReleaseType
+  );
 
-if (!newVersion) {
-  console.error('Failed to increment version');
-  process.exit(1);
+  if (!newVersion) {
+    console.error('Failed to increment version');
+    process.exit(1);
+  }
+
+  await patchPackageJsons(newVersion);
 }
-
-await patchPackageJsons(newVersion);
 
 const clientCwd = path.resolve(process.cwd(), '..', 'client');
 const serverCwd = process.cwd();
@@ -102,7 +101,7 @@ for (const target of targets) {
   });
 }
 
-const releaseInfo = await getVersionInfo(newVersion, targets, outPath);
+const releaseInfo = await getVersionInfo(targets, outPath);
 
 await fs.writeFile(releasePath, JSON.stringify(releaseInfo, null, 2), 'utf8');
 await fs.rm(buildTempPath, { recursive: true, force: true });

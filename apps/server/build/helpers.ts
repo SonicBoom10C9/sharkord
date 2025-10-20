@@ -68,11 +68,9 @@ const getFileChecksum = async (filePath: string) => {
   return hashHex;
 };
 
-const getVersionInfo = async (
-  newVersion: string,
-  targets: TTarget[],
-  outPath: string
-) => {
+const getVersionInfo = async (targets: TTarget[], outPath: string) => {
+  const version = await getCurrentVersion();
+
   const artifacts: TArtifact[] = [];
 
   for (const target of targets) {
@@ -87,7 +85,7 @@ const getVersionInfo = async (
   }
 
   const versionInfo: TVersionInfo = {
-    version: newVersion,
+    version,
     releaseDate: new Date().toISOString(),
     artifacts
   };
