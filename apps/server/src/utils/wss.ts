@@ -42,7 +42,7 @@ const createWsServer = async (server: http.Server) => {
 
         if (!user) return;
 
-        logger.info('User disconnected: %s', user?.name || 'Unknown');
+        logger.info('%s left the server', user.name);
 
         pubsub.publish(ServerEvents.USER_LEAVE, user.id);
       });

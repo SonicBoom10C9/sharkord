@@ -2,6 +2,7 @@ export enum ServerEvents {
   NEW_MESSAGE = "newMessage",
   MESSAGE_UPDATE = "messageUpdate",
   MESSAGE_DELETE = "messageDelete",
+  MESSAGE_TYPING = "messageTyping",
 
   USER_JOIN = "userJoin",
   USER_LEAVE = "userLeave",

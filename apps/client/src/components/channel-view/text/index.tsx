@@ -4,14 +4,17 @@ import { useMessages } from '@/features/server/messages/hooks';
 import { parseTrpcErrors } from '@/helpers/parse-trpc-errors';
 import { useUploadFiles } from '@/hooks/use-upload-files';
 import { getTRPCClient } from '@/lib/trpc';
+import { TYPING_MS } from '@sharkord/shared';
 import { filesize } from 'filesize';
+import { throttle } from 'lodash-es';
 import { Send } from 'lucide-react';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../../ui/button';
 import { FileCard } from './file-card';
 import { MessagesGroup } from './messages-group';
 import { TextSkeleton } from './text-skeleton';
+import { UsersTyping } from './users-typing';
 
 type TChannelProps = {
   channelId: number;
@@ -25,6 +28,20 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
   const [newMessage, setNewMessage] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const hasInitialScroll = useRef(false);
+
+  const sendTypingSignal = useMemo(
+    () =>
+      throttle(async () => {
+        const trpc = getTRPCClient();
+
+        try {
+          await trpc.messages.signalTyping.mutate({ channelId });
+        } catch {
+          // ignore
+        }
+      }, TYPING_MS),
+    [channelId]
+  );
 
   const onSendMessage = useCallback(async () => {
     if (!newMessage.trim() && !files.length) return;
@@ -146,11 +163,13 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
             ))}
           </div>
         )}
+        <UsersTyping channelId={channelId} />
         <div className="flex items-center gap-2 rounded-lg">
           <TiptapInput
             value={newMessage}
             onChange={setNewMessage}
             onSubmit={onSendMessage}
+            onTyping={sendTypingSignal}
           />
           <Button
             size="icon"

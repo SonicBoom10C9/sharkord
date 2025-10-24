@@ -8,6 +8,7 @@ import {
   ownUserRoleSelector,
   publicServerSettingsSelector,
   serverNameSelector,
+  typingUsersByChannelIdSelector,
   userRoleSelector
 } from './selectors';
 
@@ -51,3 +52,6 @@ export const useCan = () => {
 
 export const useUserRole = (userId: number) =>
   useSelector((state) => userRoleSelector(state, userId));
+
+export const useTypingUsersByChannelId = (channelId: number) =>
+  useSelector((state) => typingUsersByChannelIdSelector(state, channelId));

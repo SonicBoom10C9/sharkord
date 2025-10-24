@@ -27,6 +27,9 @@ export interface IServerState {
   publicSettings: TPublicServerSettings | undefined;
   info: TServerInfo | undefined;
   loadingInfo: boolean;
+  typingMap: {
+    [channelId: number]: number[];
+  };
 }
 
 const initialState: IServerState = {
@@ -43,7 +46,8 @@ const initialState: IServerState = {
   roles: [],
   publicSettings: undefined,
   info: undefined,
-  loadingInfo: false
+  loadingInfo: false,
+  typingMap: {}
 };
 
 export const serverSlice = createSlice({
@@ -157,6 +161,30 @@ export const serverSlice = createSlice({
       state.messagesMap[action.payload.channelId] = messages.filter(
         (m) => m.id !== action.payload.messageId
       );
+    },
+    clearTypingUsers: (state, action: PayloadAction<number>) => {
+      delete state.typingMap[action.payload];
+    },
+    addTypingUser: (
+      state,
+      action: PayloadAction<{ channelId: number; userId: number }>
+    ) => {
+      const { channelId, userId } = action.payload;
+      const typingUsers = state.typingMap[channelId] || [];
+
+      if (!typingUsers.includes(userId)) {
+        typingUsers.push(userId);
+        state.typingMap[channelId] = typingUsers;
+      }
+    },
+    removeTypingUser: (
+      state,
+      action: PayloadAction<{ channelId: number; userId: number }>
+    ) => {
+      const { channelId, userId } = action.payload;
+      const typingUsers = state.typingMap[channelId] || [];
+
+      state.typingMap[channelId] = typingUsers.filter((id) => id !== userId);
     },
 
     // USERS ------------------------------------------------------------

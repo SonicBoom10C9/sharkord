@@ -14,12 +14,13 @@ type TTiptapInputProps = {
   onChange?: (html: string) => void;
   onSubmit?: () => void;
   onCancel?: () => void;
+  onTyping?: () => void;
 };
 
 // TODO: deal with types properly here later
 
 const TiptapInput = memo(
-  ({ value, onChange, onSubmit, onCancel }: TTiptapInputProps) => {
+  ({ value, onChange, onSubmit, onCancel, onTyping }: TTiptapInputProps) => {
     const customEmojis = useCustomEmojis();
 
     const editor = useEditor({
@@ -47,6 +48,7 @@ const TiptapInput = memo(
         const html = editor.getHTML();
 
         onChange?.(html);
+        onTyping?.();
       },
       editorProps: {
         handleKeyDown: (_view, event) => {

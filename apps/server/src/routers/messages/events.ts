@@ -17,4 +17,15 @@ const onMessageRoute = protectedProcedure.subscription(async ({ ctx }) => {
   return ctx.pubsub.subscribe(ServerEvents.NEW_MESSAGE);
 });
 
-export { onMessageDeleteRoute, onMessageRoute, onMessageUpdateRoute };
+const onMessageTypingRoute = protectedProcedure.subscription(
+  async ({ ctx }) => {
+    return ctx.pubsub.subscribe(ServerEvents.MESSAGE_TYPING);
+  }
+);
+
+export {
+  onMessageDeleteRoute,
+  onMessageRoute,
+  onMessageTypingRoute,
+  onMessageUpdateRoute
+};

@@ -19,6 +19,11 @@ type Events = {
     messageId: number;
     channelId: number;
   };
+  [ServerEvents.MESSAGE_TYPING]: {
+    channelId: number;
+    userId: number;
+  };
+
   [ServerEvents.USER_JOIN]: TJoinedPublicUser;
   [ServerEvents.USER_LEAVE]: number;
   [ServerEvents.USER_CREATE]: TJoinedPublicUser;

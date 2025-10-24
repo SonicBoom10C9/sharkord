@@ -4,6 +4,8 @@ import { createSelector } from '@reduxjs/toolkit';
 export const messagesMapSelector = (state: IRootState) =>
   state.server.messagesMap;
 
+export const typingMapSelector = (state: IRootState) => state.server.typingMap;
+
 export const messagesByChannelIdSelector = createSelector(
   [messagesMapSelector, (_, channelId: number) => channelId],
   (messagesMap, channelId) => messagesMap[channelId] || []

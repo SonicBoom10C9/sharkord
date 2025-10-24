@@ -1,7 +1,13 @@
 import { createSelector } from '@reduxjs/toolkit';
 import type { IRootState } from '../store';
+import { typingMapSelector } from './messages/selectors';
 import { rolesSelector } from './roles/selectors';
-import { ownUserSelector, userByIdSelector } from './users/selectors';
+import {
+  ownUserIdSelector,
+  ownUserSelector,
+  userByIdSelector,
+  usersSelector
+} from './users/selectors';
 
 export const connectedSelector = (state: IRootState) => state.server.connected;
 
@@ -27,4 +33,21 @@ export const ownUserRoleSelector = createSelector(
 export const userRoleSelector = createSelector(
   [rolesSelector, userByIdSelector],
   (roles, user) => roles.find((role) => role.id === user?.roleId)
+);
+
+export const typingUsersByChannelIdSelector = createSelector(
+  [
+    typingMapSelector,
+    (_, channelId: number) => channelId,
+    ownUserIdSelector,
+    usersSelector
+  ],
+  (typingMap, channelId, ownUserId, users) => {
+    const userIds = typingMap[channelId] || [];
+
+    return userIds
+      .filter((id) => id !== ownUserId)
+      .map((id) => users.find((u) => u.id === id)!)
+      .filter((u) => !!u);
+  }
 );
