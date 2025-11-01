@@ -7,7 +7,7 @@ import parse from 'html-react-parser';
 import { memo, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { FileCard } from '../file-card';
-import { MessageReactions } from '../message.reactions';
+import { MessageReactions } from '../message-reactions';
 import { ImageOverride } from '../overrides/image';
 import { serializer } from './serializer';
 import type { TFoundMedia } from './types';

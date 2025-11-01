@@ -1,6 +1,7 @@
 import { closeDialogs } from '@/features/dialogs/actions';
 import { useDialogInfo } from '@/features/dialogs/hooks';
 import { createElement, memo } from 'react';
+import { ChangeRoleDialog } from './change-role';
 import ConfirmActionDialog from './confirm-action';
 import { CreateChannelDialog } from './create-channel';
 import { Dialog } from './dialogs';
@@ -12,7 +13,8 @@ const DialogsMap: any = {
   [Dialog.CONFIRM_ACTION]: ConfirmActionDialog,
   [Dialog.CREATE_CHANNEL]: CreateChannelDialog,
   [Dialog.TEXT_INPUT]: TextInputDialog,
-  [Dialog.SERVER_PASSWORD]: ServerPasswordDialog
+  [Dialog.SERVER_PASSWORD]: ServerPasswordDialog,
+  [Dialog.CHANGE_ROLE]: ChangeRoleDialog
 };
 
 const DialogsProvider = memo(() => {

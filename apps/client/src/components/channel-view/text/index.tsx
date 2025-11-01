@@ -1,10 +1,11 @@
 import { TiptapInput } from '@/components/tiptap-input';
 import Spinner from '@/components/ui/spinner';
+import { useCan } from '@/features/server/hooks';
 import { useMessages } from '@/features/server/messages/hooks';
 import { getTrpcError } from '@/helpers/parse-trpc-errors';
 import { useUploadFiles } from '@/hooks/use-upload-files';
 import { getTRPCClient } from '@/lib/trpc';
-import { TYPING_MS } from '@sharkord/shared';
+import { Permission, TYPING_MS } from '@sharkord/shared';
 import { filesize } from 'filesize';
 import { throttle } from 'lodash-es';
 import { Send } from 'lucide-react';
@@ -33,6 +34,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
     hasMore,
     loadMore
   });
+  const can = useCan();
 
   const sendTypingSignal = useMemo(
     () =>
@@ -51,6 +53,8 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
   const onSendMessage = useCallback(async () => {
     if (!newMessage.trim() && !files.length) return;
 
+    sendTypingSignal.cancel();
+
     const trpc = getTRPCClient();
 
     try {
@@ -66,7 +70,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
 
     setNewMessage('');
     clearFiles();
-  }, [newMessage, channelId, files, clearFiles]);
+  }, [newMessage, channelId, files, clearFiles, sendTypingSignal]);
 
   const onRemoveFileClick = useCallback(
     async (fileId: string) => {
@@ -130,13 +134,16 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
             onChange={setNewMessage}
             onSubmit={onSendMessage}
             onTyping={sendTypingSignal}
+            disabled={!can(Permission.SEND_MESSAGES)}
           />
           <Button
             size="icon"
             variant="ghost"
             className="h-8 w-8"
             onClick={onSendMessage}
-            disabled={uploading || !newMessage.trim()}
+            disabled={
+              uploading || !newMessage.trim() || !can(Permission.SEND_MESSAGES)
+            }
           >
             <Send className="h-4 w-4" />
           </Button>

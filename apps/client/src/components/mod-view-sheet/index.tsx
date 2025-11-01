@@ -65,8 +65,6 @@ const ContentWrapper = memo(({ userId }: TContentWrapperProps) => {
     );
   }
 
-  console.log('Rendering ModViewContent for userId:', contextValue);
-
   return (
     <ModViewContext.Provider value={contextValue}>
       <ModViewContent key={userId} />

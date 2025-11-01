@@ -15,9 +15,6 @@ const initializeTRPC = (host: string) => {
     url: `ws://${host}`,
     // @ts-expect-error - the onclose type is not correct in trpc
     onClose: (cause: CloseEvent) => {
-      console.log('WebSocket connection closed. Cause:', cause);
-      console.log(cause);
-
       cleanup();
       setDisconnectInfo({
         code: cause.code,

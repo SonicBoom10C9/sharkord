@@ -11,6 +11,7 @@ import { publicRouteHandler } from './public';
 import { registerRouteHandler } from './register';
 import { uploadFileRouteHandler } from './upload';
 import { HttpValidationError } from './utils';
+import chalk from 'chalk';
 
 // this http server implementation is temporary and will be moved to bun server later when things are more stable
 
@@ -24,7 +25,7 @@ const createHttpServer = async () => {
 
         const info = getWsInfo(undefined, req);
 
-        logger.debug('[HTTP] %s - %s - [%s]', req.method, req.url, info?.ip);
+        logger.debug(`${chalk.dim('[HTTP]')} %s - %s - [%s]`, req.method, req.url, info?.ip);
 
         if (req.method === 'OPTIONS') {
           res.writeHead(200);

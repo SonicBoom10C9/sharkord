@@ -61,6 +61,7 @@ const UpdateRole = memo(
           roleId: selectedRole.id,
           ...values
         });
+
         toast.success('Role updated');
         refetch();
       } catch (error) {

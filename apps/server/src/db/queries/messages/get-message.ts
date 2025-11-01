@@ -1,4 +1,8 @@
-import type { TFile, TJoinedMessage, TMessageReaction } from '@sharkord/shared';
+import type {
+  TFile,
+  TJoinedMessage,
+  TJoinedMessageReaction
+} from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { db } from '../..';
 import { files, messageFiles, messageReactions, messages } from '../../schema';
@@ -26,16 +30,25 @@ const getMessage = async (
   const filesForMessage: TFile[] = fileRows.map((r) => r.file);
 
   const reactionRows = await db
-    .select()
+    .select({
+      messageId: messageReactions.messageId,
+      userId: messageReactions.userId,
+      emoji: messageReactions.emoji,
+      createdAt: messageReactions.createdAt,
+      fileId: messageReactions.fileId,
+      file: files
+    })
     .from(messageReactions)
+    .leftJoin(files, eq(messageReactions.fileId, files.id))
     .where(eq(messageReactions.messageId, messageId));
 
-  const reactions: TMessageReaction[] = reactionRows.map((r) => ({
+  const reactions: TJoinedMessageReaction[] = reactionRows.map((r) => ({
     messageId: r.messageId,
     userId: r.userId,
     emoji: r.emoji,
     createdAt: r.createdAt,
-    fileId: null
+    fileId: r.fileId,
+    file: r.file
   }));
 
   return {

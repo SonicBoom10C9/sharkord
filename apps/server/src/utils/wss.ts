@@ -141,7 +141,10 @@ const createWsServer = async (server: http.Server) => {
           targetPermission: Permission | Permission[]
         ) => {
           if (!(await hasPermission(targetPermission))) {
-            throw new TRPCError({ code: 'FORBIDDEN' });
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Insufficient permissions'
+            });
           }
         };
 

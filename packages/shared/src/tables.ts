@@ -78,9 +78,13 @@ export type TJoinedRole = TRole & {
   permissions: Permission[];
 };
 
+export type TJoinedMessageReaction = TMessageReaction & {
+  file: TFile | null;
+};
+
 export type TJoinedMessage = TMessage & {
   files: TFile[];
-  reactions: TMessageReaction[];
+  reactions: TJoinedMessageReaction[];
 };
 
 export type TJoinedEmoji = TEmoji & {

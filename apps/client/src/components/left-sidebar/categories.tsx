@@ -3,9 +3,11 @@ import {
   useCategories,
   useCategoryById
 } from '@/features/server/categories/hooks';
+import { Permission } from '@sharkord/shared';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
 import { Dialog } from '../dialogs/dialogs';
+import { Protect } from '../protect';
 import { Button } from '../ui/button';
 import { Tooltip } from '../ui/tooltip';
 import { Channels } from './channels';
@@ -42,11 +44,17 @@ const Category = memo(({ categoryId }: TCategoryProps) => {
           <span>{category.name}</span>
         </div>
 
-        <Tooltip content="Create channel">
-          <Button variant="ghost" size="iconXs" onClick={onCreateChannelClick}>
-            <Plus className="h-2 w-2" />
-          </Button>
-        </Tooltip>
+        <Protect permission={Permission.MANAGE_CHANNELS}>
+          <Tooltip content="Create channel">
+            <Button
+              variant="ghost"
+              size="iconXs"
+              onClick={onCreateChannelClick}
+            >
+              <Plus className="h-2 w-2" />
+            </Button>
+          </Tooltip>
+        </Protect>
       </div>
 
       {expanded && <Channels categoryId={category.id} />}

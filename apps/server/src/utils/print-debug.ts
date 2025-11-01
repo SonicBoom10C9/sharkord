@@ -12,7 +12,6 @@ const printDebug = () => {
   if (!config.server.debug) return;
 
   const message = [
-    chalk.blueBright.bold('\n\nDebug mode enabled'),
     chalk.dim('────────────────────────────────────────────────────'),
     `${chalk.blue('Bun version:')} ${chalk.bold(String(Bun.version_with_sha))}`,
     `${chalk.blue('Local address:')} ${chalk.bold(String(SERVER_PRIVATE_IP))}`,
@@ -31,6 +30,12 @@ const printDebug = () => {
   ].join('\n');
 
   console.log('%s', message);
+  console.log(
+    chalk.dim('────────────────────────────────────────────────────')
+  );
+  console.log(
+    chalk.white.bold('Debug mode is enabled. This may affect performance.')
+  );
 };
 
 export { printDebug };

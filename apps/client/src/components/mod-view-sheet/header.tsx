@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/user-avatar';
 import {
+  openDialog,
   requestConfirmation,
   requestTextInput
 } from '@/features/dialogs/actions';
@@ -11,6 +12,7 @@ import { UserStatus } from '@sharkord/shared';
 import { Gavel, Shield, UserMinus } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
+import { Dialog } from '../dialogs/dialogs';
 import { useModViewContext } from './context';
 
 const Header = memo(() => {
@@ -124,7 +126,11 @@ const Header = memo(() => {
           <Gavel className="h-4 w-4" />
           {user.banned ? 'Unban' : 'Ban'}
         </Button>
-        <Button variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => openDialog(Dialog.CHANGE_ROLE, { user, refetch })}
+        >
           <Shield className="h-4 w-4" />
           Change Role
         </Button>

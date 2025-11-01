@@ -2,6 +2,7 @@ import { t } from '../../utils/trpc';
 import { banRoute } from './ban';
 import { changeAvatarRoute } from './change-avatar';
 import { changeBannerRoute } from './change-banner';
+import { changeRoleRoute } from './change-role';
 import {
   onUserCreateRoute,
   onUserJoinRoute,
@@ -17,6 +18,7 @@ import { updateUserRoute } from './update-user';
 export const usersRouter = t.router({
   changeAvatar: changeAvatarRoute,
   changeBanner: changeBannerRoute,
+  changeRole: changeRoleRoute,
   update: updateUserRoute,
   getInfo: getUserInfoRoute,
   getAll: getUsersRoute,

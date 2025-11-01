@@ -4,12 +4,19 @@ import { serverSliceActions } from '../slice';
 
 const typingTimeouts: { [key: string]: NodeJS.Timeout } = {};
 
+const getTypingKey = (channelId: number, userId: number) =>
+  `${channelId}-${userId}`;
+
 export const addMessages = (
   channelId: number,
   messages: TJoinedMessage[],
   opts: { prepend?: boolean } = {}
 ) => {
   store.dispatch(serverSliceActions.addMessages({ channelId, messages, opts }));
+
+  messages.forEach((message) => {
+    removeTypingUser(channelId, message.userId);
+  });
 };
 
 export const updateMessage = (channelId: number, message: TJoinedMessage) => {
@@ -23,7 +30,7 @@ export const deleteMessage = (channelId: number, messageId: number) => {
 export const addTypingUser = (channelId: number, userId: number) => {
   store.dispatch(serverSliceActions.addTypingUser({ channelId, userId }));
 
-  const timeoutKey = `${channelId}-${userId}`;
+  const timeoutKey = getTypingKey(channelId, userId);
 
   if (typingTimeouts[timeoutKey]) {
     clearTimeout(typingTimeouts[timeoutKey]);

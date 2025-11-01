@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { addReaction } from '../../db/mutations/messages/add-reaction';
 import { removeReaction } from '../../db/mutations/messages/remove-reaction';
 import { publishMessageUpdate } from '../../db/publishers';
+import { getEmojiFileIdByEmojiName } from '../../db/queries/emojis/get-emoji-file-id-by-emoji-name';
 import { getReaction } from '../../db/queries/messages/get-reaction';
 import { protectedProcedure } from '../../utils/trpc';
 
@@ -23,7 +24,9 @@ const toggleMessageReactionRoute = protectedProcedure
     );
 
     if (!reaction) {
-      await addReaction(input.messageId, input.emoji, ctx.user.id);
+      const emojiFileId = await getEmojiFileIdByEmojiName(input.emoji);
+
+      await addReaction(input.messageId, input.emoji, ctx.user.id, emojiFileId);
     } else {
       await removeReaction(input.messageId, input.emoji, ctx.user.id);
     }

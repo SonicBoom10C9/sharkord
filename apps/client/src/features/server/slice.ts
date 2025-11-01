@@ -222,6 +222,14 @@ export const serverSlice = createSlice({
         ...state.users[index],
         ...action.payload.user
       };
+
+      // also spread to ownUser if the IDs match
+      if (state.ownUser && state.ownUser.id === action.payload.userId) {
+        state.ownUser = {
+          ...state.ownUser,
+          ...action.payload.user
+        };
+      }
     },
     addUser: (state, action: PayloadAction<TJoinedPublicUser>) => {
       const exists = state.users.find((u) => u.id === action.payload.id);

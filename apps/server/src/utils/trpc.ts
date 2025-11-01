@@ -1,5 +1,6 @@
 import { UserStatus, type Permission, type TUser } from '@sharkord/shared';
 import { initTRPC, TRPCError } from '@trpc/server';
+import chalk from 'chalk';
 import type WebSocket from 'ws';
 import { config } from '../config';
 import { logger } from '../logger';
@@ -28,7 +29,7 @@ export type Context = {
 
 const t = initTRPC.context<Context>().create();
 
-const timingMiddleware = t.middleware(async ({ path, type, next }) => {
+const timingMiddleware = t.middleware(async ({ path, next }) => {
   if (!config.server.debug) {
     return next();
   }
@@ -38,24 +39,28 @@ const timingMiddleware = t.middleware(async ({ path, type, next }) => {
   const end = performance.now();
   const duration = end - start;
 
-  logger.debug(`[tRPC] ${type.toUpperCase()} ${path} took ${duration}ms`);
+  logger.debug(
+    `${chalk.dim('[tRPC]')} ${chalk.yellow(path)} took ${chalk.green(duration.toFixed(2))} ms`
+  );
 
   return result;
+});
+
+const authMiddleware = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.authenticated) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED'
+    });
+  }
+
+  return next();
 });
 
 // this should be used for all queries and mutations apart from the join server one
 // it prevents users that only are connected to the wss but did not join the server from accessing protected procedures
 const protectedProcedure = t.procedure
   .use(timingMiddleware)
-  .use(async ({ ctx, next }) => {
-    if (!ctx.authenticated) {
-      throw new TRPCError({
-        code: 'UNAUTHORIZED'
-      });
-    }
-
-    return next();
-  });
+  .use(authMiddleware);
 
 const publicProcedure = t.procedure.use(timingMiddleware);
 

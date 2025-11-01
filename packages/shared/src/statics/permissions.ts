@@ -1,5 +1,4 @@
 export enum Permission {
-  VIEW_CHANNELS = "VIEW_CHANNELS",
   SEND_MESSAGES = "SEND_MESSAGES",
   REACT_TO_MESSAGES = "REACT_TO_MESSAGES",
   UPLOAD_FILES = "UPLOAD_FILES",
@@ -22,7 +21,6 @@ export enum Permission {
 }
 
 export const permissionLabels: Record<Permission, string> = {
-  [Permission.VIEW_CHANNELS]: "View channels",
   [Permission.SEND_MESSAGES]: "Send messages",
   [Permission.REACT_TO_MESSAGES]: "React to messages",
   [Permission.UPLOAD_FILES]: "Upload files",
@@ -44,8 +42,6 @@ export const permissionLabels: Record<Permission, string> = {
 };
 
 export const permissionDescriptions: Record<Permission, string> = {
-  [Permission.VIEW_CHANNELS]:
-    "Allows the user to view the list of channels and its content.",
   [Permission.SEND_MESSAGES]:
     "Grants the ability to send messages in channels.",
   [Permission.REACT_TO_MESSAGES]: "Grants the ability to react to messages.",
@@ -80,7 +76,6 @@ export const DEFAULT_ROLE_PERMISSIONS = [
   Permission.JOIN_VOICE_CHANNELS,
   Permission.SEND_MESSAGES,
   Permission.UPLOAD_FILES,
-  Permission.VIEW_CHANNELS,
   Permission.SHARE_SCREEN,
   Permission.ENABLE_WEBCAM,
 ];

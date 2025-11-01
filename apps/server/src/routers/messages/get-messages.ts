@@ -2,8 +2,8 @@ import {
   DEFAULT_MESSAGES_LIMIT,
   type TFile,
   type TJoinedMessage,
-  type TMessage,
-  type TMessageReaction
+  type TJoinedMessageReaction,
+  type TMessage
 } from '@sharkord/shared';
 import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 import { z } from 'zod';
@@ -77,19 +77,23 @@ const getMessagesRoute = protectedProcedure
         messageId: messageReactions.messageId,
         userId: messageReactions.userId,
         emoji: messageReactions.emoji,
-        createdAt: messageReactions.createdAt
+        createdAt: messageReactions.createdAt,
+        fileId: messageReactions.fileId,
+        file: files
       })
       .from(messageReactions)
+      .leftJoin(files, eq(messageReactions.fileId, files.id))
       .where(inArray(messageReactions.messageId, messageIds));
 
-    const reactionsByMessage: Record<number, TMessageReaction[]> = {};
+    const reactionsByMessage: Record<number, TJoinedMessageReaction[]> = {};
     for (const r of reactionRows) {
-      const reaction: TMessageReaction = {
+      const reaction: TJoinedMessageReaction = {
         messageId: r.messageId,
         userId: r.userId,
         emoji: r.emoji,
         createdAt: r.createdAt,
-        fileId: null
+        fileId: r.fileId,
+        file: r.file
       };
 
       if (!reactionsByMessage[r.messageId]) {
