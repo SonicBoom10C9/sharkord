@@ -19,12 +19,13 @@ const deleteRoleRoute = protectedProcedure
     const role = await getRole(input.roleId);
 
     if (!role) {
-      throw new TRPCError({ code: 'NOT_FOUND' });
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Role not found' });
     }
 
     if (role.isPersistent) {
       throw new TRPCError({
-        code: 'FORBIDDEN'
+        code: 'FORBIDDEN',
+        message: 'Cannot delete a persistent role'
       });
     }
 

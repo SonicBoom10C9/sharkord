@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip } from '@/components/ui/tooltip';
 import { requestConfirmation } from '@/features/dialogs/actions';
 import { useOwnUserRole } from '@/features/server/hooks';
+import { getTrpcError } from '@/helpers/parse-trpc-errors';
 import { useForm } from '@/hooks/use-form';
 import { getTRPCClient } from '@/lib/trpc';
 import { OWNER_ROLE_ID, type TJoinedRole } from '@sharkord/shared';
-import { AlertCircle, Info, Trash2 } from 'lucide-react';
+import { AlertCircle, Info, Star, Trash2 } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { PermissionList } from './permissions-list';
@@ -69,22 +71,57 @@ const UpdateRole = memo(
       }
     }, [selectedRole.id, values, refetch, setTrpcErrors]);
 
+    const onSetAsDefaultRole = useCallback(async () => {
+      const trpc = getTRPCClient();
+
+      try {
+        await trpc.roles.setDefault.mutate({ roleId: selectedRole.id });
+
+        toast.success('Default role updated');
+        refetch();
+      } catch (error) {
+        toast.error(getTrpcError(error, 'Failed to set default role'));
+      }
+    }, [selectedRole.id, refetch]);
+
     return (
       <Card className="flex-1">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Edit Role</CardTitle>
-            <Button
-              size="icon"
-              variant="ghost"
-              disabled={selectedRole.isPersistent}
-              onClick={onDeleteRole}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div>
+              <Tooltip content="Set as Default Role">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  disabled={selectedRole.isDefault}
+                  onClick={onSetAsDefaultRole}
+                >
+                  <Star className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={selectedRole.isPersistent}
+                onClick={onDeleteRole}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {selectedRole.isDefault && (
+            <Alert variant="default">
+              <Star />
+              <AlertDescription>
+                This is the default role. New members will be assigned this role
+                upon joining.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {isOwnerRole ? (
             <Alert variant="default">
               <Info />
