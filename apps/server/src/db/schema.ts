@@ -305,18 +305,26 @@ const invites = sqliteTable(
   })
 );
 
-const activityLog = sqliteTable('activity_log', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('userId')
-    .notNull()
-    .references(() => users.id),
-  type: text('type').notNull(),
-  details: text('details', { mode: 'json' }).$type<
-    TActivityLogDetailsMap[keyof TActivityLogDetailsMap]
-  >(),
-  ip: text('ip'),
-  createdAt: integer('createdAt').notNull()
-});
+const activityLog = sqliteTable(
+  'activity_log',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id),
+    type: text('type').notNull(),
+    details: text('details', { mode: 'json' }).$type<
+      TActivityLogDetailsMap[keyof TActivityLogDetailsMap]
+    >(),
+    ip: text('ip'),
+    createdAt: integer('createdAt').notNull()
+  },
+  (t) => ({
+    userIdx: index('activity_log_user_idx').on(t.userId),
+    typeIdx: index('activity_log_type_idx').on(t.type),
+    createdIdx: index('activity_log_created_idx').on(t.createdAt)
+  })
+);
 
 export {
   activityLog,

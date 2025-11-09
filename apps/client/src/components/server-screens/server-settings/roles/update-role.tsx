@@ -103,7 +103,7 @@ const UpdateRole = memo(
               <Button
                 size="icon"
                 variant="ghost"
-                disabled={selectedRole.isPersistent}
+                disabled={selectedRole.isPersistent || selectedRole.isDefault}
                 onClick={onDeleteRole}
               >
                 <Trash2 className="h-4 w-4" />

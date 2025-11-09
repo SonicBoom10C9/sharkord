@@ -1,9 +1,10 @@
-import { OWNER_ROLE_ID, Permission } from '@sharkord/shared';
+import { ActivityLogType, OWNER_ROLE_ID, Permission } from '@sharkord/shared';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { syncRolePermissions } from '../../db/mutations/roles/sync-role-permissions';
 import { updateRole } from '../../db/mutations/roles/update-role';
 import { publishRole } from '../../db/publishers';
+import { enqueueActivityLog } from '../../queues/activity-log';
 import { protectedProcedure } from '../../utils/trpc';
 
 const updateRoleRoute = protectedProcedure
@@ -35,7 +36,16 @@ const updateRoleRoute = protectedProcedure
       await syncRolePermissions(updatedRole.id, input.permissions);
     }
 
-    await publishRole(updatedRole.id, 'update');
+    publishRole(updatedRole.id, 'update');
+    enqueueActivityLog({
+      type: ActivityLogType.UPDATED_ROLE,
+      userId: ctx.user.id,
+      details: {
+        roleId: updatedRole.id,
+        permissions: input.permissions,
+        values: input
+      }
+    });
   });
 
 export { updateRoleRoute };

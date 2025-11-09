@@ -1,4 +1,5 @@
 import {
+  ActivityLogType,
   OWNER_ROLE_ID,
   Permission,
   ServerEvents,
@@ -14,6 +15,7 @@ import { getUserByToken } from '../db/queries/users/get-user-by-token';
 import { getUserRole } from '../db/queries/users/get-user-role';
 import { getWsInfo } from '../helpers/get-ws-info';
 import { logger } from '../logger';
+import { enqueueActivityLog } from '../queues/activity-log';
 import { appRouter } from '../routers';
 import { pubsub } from './pubsub';
 
@@ -52,6 +54,11 @@ const createWsServer = async (server: http.Server) => {
         logger.info('%s left the server', user.name);
 
         pubsub.publish(ServerEvents.USER_LEAVE, user.id);
+
+        enqueueActivityLog({
+          type: ActivityLogType.USER_LEFT,
+          userId: user.id
+        });
       });
 
       ws.on('error', (err) => {

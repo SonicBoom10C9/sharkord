@@ -1,7 +1,8 @@
-import { Permission } from '@sharkord/shared';
+import { ActivityLogType, Permission } from '@sharkord/shared';
 import { TRPCError } from '@trpc/server';
 import { createRole } from '../../db/mutations/roles/create-role';
 import { publishRole } from '../../db/publishers';
+import { enqueueActivityLog } from '../../queues/activity-log';
 import { protectedProcedure } from '../../utils/trpc';
 
 const addRoleRoute = protectedProcedure.mutation(async ({ ctx }) => {
@@ -20,7 +21,15 @@ const addRoleRoute = protectedProcedure.mutation(async ({ ctx }) => {
     });
   }
 
-  await publishRole(role.id, 'create');
+  publishRole(role.id, 'create');
+  enqueueActivityLog({
+    type: ActivityLogType.CREATED_ROLE,
+    userId: ctx.user.id,
+    details: {
+      roleId: role.id,
+      roleName: role.name
+    }
+  });
 
   return role.id;
 });
