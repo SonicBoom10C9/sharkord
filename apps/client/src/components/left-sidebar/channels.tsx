@@ -3,6 +3,7 @@ import { setSelectedChannelId } from '@/features/server/channels/actions';
 import {
   useChannelById,
   useChannelsByCategoryId,
+  useCurrentVoiceChannelId,
   useSelectedChannelId
 } from '@/features/server/channels/hooks';
 import {
@@ -102,12 +103,16 @@ type TChannelProps = {
 
 const Channel = memo(({ channelId, isSelected }: TChannelProps) => {
   const channel = useChannelById(channelId);
+  const currentVoiceChannelId = useCurrentVoiceChannelId();
   const { init } = useVoice();
 
   const onClick = useCallback(async () => {
     setSelectedChannelId(channelId);
 
-    if (channel?.type === ChannelType.VOICE) {
+    if (
+      channel?.type === ChannelType.VOICE &&
+      currentVoiceChannelId !== channelId
+    ) {
       const response = await joinVoice(channelId);
 
       if (!response) {
@@ -125,7 +130,7 @@ const Channel = memo(({ channelId, isSelected }: TChannelProps) => {
         toast.error('Failed to initialize voice connection');
       }
     }
-  }, [channelId, channel?.type, init]);
+  }, [channelId, channel?.type, init, currentVoiceChannelId]);
 
   if (!channel) {
     return null;

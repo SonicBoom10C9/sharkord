@@ -1,4 +1,5 @@
 import { useCurrentVoiceChannelId } from '@/features/server/channels/hooks';
+import { useOwnUserId } from '@/features/server/users/hooks';
 import { getTRPCClient } from '@/lib/trpc';
 import type { RtpCapabilities, StreamKind } from '@sharkord/shared';
 import { useEffect } from 'react';
@@ -22,6 +23,7 @@ const useVoiceEvents = ({
   rtpCapabilities
 }: TEvents) => {
   const currentVoiceChannelId = useCurrentVoiceChannelId();
+  const ownUserId = useOwnUserId();
 
   useEffect(() => {
     if (!currentVoiceChannelId) {
@@ -37,6 +39,17 @@ const useVoiceEvents = ({
       {
         onData: ({ remoteUserId, kind, channelId }) => {
           if (currentVoiceChannelId !== channelId || isCleaningUp) return;
+
+          if (remoteUserId === ownUserId) {
+            logVoice('Ignoring own producer event', {
+              remoteUserId,
+              ownUserId,
+              kind,
+              channelId
+            });
+
+            return;
+          }
 
           logVoice('New producer event received', {
             remoteUserId,
@@ -118,6 +131,7 @@ const useVoiceEvents = ({
     };
   }, [
     currentVoiceChannelId,
+    ownUserId,
     consume,
     removeRemoteStream,
     clearRemoteStreamsForUser,

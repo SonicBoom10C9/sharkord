@@ -13,12 +13,25 @@ import {
 import { logVoice } from './helpers';
 import { useLocalStreams } from './hooks/use-local-streams';
 import { useRemoteStreams } from './hooks/use-remote-streams';
+import {
+  useTransportStats,
+  type TransportStatsData
+} from './hooks/use-transport-stats';
 import { useTransports } from './hooks/use-transports';
 import { useVoiceControls } from './hooks/use-voice-controls';
 import { useVoiceEvents } from './hooks/use-voice-events';
 
+enum ConnectionStatus {
+  DISCONNECTED = 'disconnected',
+  CONNECTING = 'connecting',
+  CONNECTED = 'connected',
+  FAILED = 'failed'
+}
+
 export type TVoiceProvider = {
   loading: boolean;
+  connectionStatus: ConnectionStatus;
+  transportStats: TransportStatsData;
   init: (
     routerRtpCapabilities: RtpCapabilities,
     channelId: number
@@ -32,6 +45,14 @@ export type TVoiceProvider = {
 
 const VoiceProviderContext = createContext<TVoiceProvider>({
   loading: false,
+  connectionStatus: ConnectionStatus.DISCONNECTED,
+  transportStats: {
+    producer: null,
+    consumer: null,
+    totalBytesReceived: 0,
+    totalBytesSent: 0,
+    isMonitoring: false
+  },
   init: () => Promise.resolve(),
   toggleMic: () => Promise.resolve(),
   toggleSound: () => Promise.resolve(),
@@ -58,6 +79,9 @@ type TVoiceProviderProps = {
 
 const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
   const [loading, setLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    ConnectionStatus.DISCONNECTED
+  );
   const routerRtpCapabilities = useRef<RtpCapabilities | null>(null);
 
   const {
@@ -80,6 +104,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
   } = useLocalStreams();
   const {
     producerTransport,
+    consumerTransport,
     createProducerTransport,
     createConsumerTransport,
     consume,
@@ -88,6 +113,13 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
     addRemoteStream,
     removeRemoteStream
   });
+
+  const {
+    stats: transportStats,
+    startMonitoring,
+    stopMonitoring,
+    resetStats
+  } = useTransportStats();
 
   const startMicStream = useCallback(async () => {
     try {
@@ -334,6 +366,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
 
       try {
         setLoading(true);
+        setConnectionStatus(ConnectionStatus.CONNECTING);
 
         routerRtpCapabilities.current = incomingRouterRtpCapabilities;
 
@@ -347,9 +380,12 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
         await consumeExistingProducers(incomingRouterRtpCapabilities);
         await startMicStream();
 
+        startMonitoring(producerTransport.current, consumerTransport.current);
+        setConnectionStatus(ConnectionStatus.CONNECTED);
         setLoading(false);
       } catch (error) {
         logVoice('Error initializing voice provider', { error });
+        setConnectionStatus(ConnectionStatus.FAILED);
         setLoading(false);
 
         throw error;
@@ -359,7 +395,10 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
       createProducerTransport,
       createConsumerTransport,
       consumeExistingProducers,
-      startMicStream
+      startMicStream,
+      startMonitoring,
+      producerTransport,
+      consumerTransport
     ]
   );
 
@@ -387,6 +426,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
 
   useEffect(() => {
     const producerTransportRef = producerTransport.current;
+    const consumerTransportRef = consumerTransport.current;
     const audioProducerRef = localAudioProducer.current;
     const videoProducerRef = localVideoProducer.current;
     const screenShareProducerRef = localScreenShareProducer.current;
@@ -413,8 +453,11 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
       clearRemoteStreams();
 
       producerTransportRef?.close();
+      consumerTransportRef?.close();
 
-      logVoice('Voice provider cleanup completed');
+      stopMonitoring();
+      resetStats();
+      setConnectionStatus(ConnectionStatus.DISCONNECTED);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -422,6 +465,8 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
   const contextValue = useMemo<TVoiceProvider>(
     () => ({
       loading,
+      connectionStatus,
+      transportStats,
       init,
 
       toggleMic,
@@ -438,6 +483,8 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
     }),
     [
       loading,
+      connectionStatus,
+      transportStats,
       init,
 
       toggleMic,
