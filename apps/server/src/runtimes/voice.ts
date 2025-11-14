@@ -296,8 +296,6 @@ class VoiceRuntime {
 
     this.producerTransports[userId] = transport;
 
-    // transport.observer.on()
-
     transport.observer.on('close', () => {
       delete this.producerTransports[userId];
     });
@@ -393,8 +391,7 @@ class VoiceRuntime {
   public addConsumer = (
     userId: number,
     remoteUserId: number,
-    consumer: Consumer<AppData>,
-    kind: StreamKind
+    consumer: Consumer<AppData>
   ) => {
     if (!this.consumers[userId]) {
       this.consumers[userId] = {};
@@ -405,18 +402,6 @@ class VoiceRuntime {
     consumer.observer.on('close', () => {
       delete this.consumers[userId]?.[remoteUserId];
     });
-
-    // TODO: notify consumer about producer close
-    // consumer.on('producerclose', () => {
-    //   wss.sendToUser<TProducerClosedSub>(
-    //     userId,
-    //     SocketSubscription.PRODUCER_CLOSED,
-    //     {
-    //       remoteUserId,
-    //       kind
-    //     }
-    //   );
-    // });
   };
 
   public getRemoteIds = (userId: number): TRemoteProducerIds => {

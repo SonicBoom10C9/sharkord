@@ -1,4 +1,4 @@
-import { Permission, StreamKind } from '@sharkord/shared';
+import { Permission, ServerEvents, StreamKind } from '@sharkord/shared';
 import { z } from 'zod';
 import { VoiceRuntime } from '../../runtimes/voice';
 import { invariant } from '../../utils/invariant';
@@ -58,7 +58,17 @@ const consumeRoute = protectedProcedure
       paused: false
     });
 
-    runtime.addConsumer(ctx.user.id, input.remoteUserId, consumer, input.kind);
+    runtime.addConsumer(ctx.user.id, input.remoteUserId, consumer);
+
+    consumer.on('producerclose', () => {
+      if (!ctx.currentVoiceChannelId) return;
+
+      ctx.pubsub.publish(ServerEvents.VOICE_PRODUCER_CLOSED, {
+        channelId: ctx.currentVoiceChannelId,
+        remoteUserId: input.remoteUserId,
+        kind: input.kind
+      });
+    });
 
     return {
       producerId: producer.id,

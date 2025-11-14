@@ -20,12 +20,7 @@ import { toast } from 'sonner';
 import { useLocalStreams } from './hooks/use-local-streams';
 import { useRemoteStreams } from './hooks/use-remote-streams';
 import { useVoiceControls } from './hooks/use-voice-controls';
-import {
-  useVoiceEvents,
-  type TNewProducerParams,
-  type TProducerClosedParams,
-  type TUserLeaveParams
-} from './hooks/use-voice-events';
+import { useVoiceEvents } from './hooks/use-voice-events';
 
 export type TVoiceProvider = {
   loading: boolean;
@@ -378,7 +373,9 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
         const trpc = getTRPCClient();
 
         try {
-          await trpc.voice.closeProducer.mutate();
+          await trpc.voice.closeProducer.mutate({
+            kind: StreamKind.VIDEO
+          });
         } catch (error) {
           toast.error(getTrpcError(error, 'Failed to close video producer'));
         }
@@ -433,7 +430,9 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
         const trpc = getTRPCClient();
 
         try {
-          await trpc.voice.closeProducer.mutate();
+          await trpc.voice.closeProducer.mutate({
+            kind: StreamKind.SCREEN
+          });
         } catch (error) {
           toast.error(
             getTrpcError(error, 'Failed to close screen share producer')
@@ -454,7 +453,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
       incomingRouterRtpCapabilities: RtpCapabilities,
       channelId: number
     ) => {
-      console.log('mediaSoup init()', { routerRtpCapabilities, channelId });
+      log('mediaSoup init()', { routerRtpCapabilities, channelId });
 
       setLoading(true);
       routerRtpCapabilities.current = incomingRouterRtpCapabilities;
@@ -462,10 +461,6 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
       const device = new Device();
       await device.load({
         routerRtpCapabilities: incomingRouterRtpCapabilities
-      });
-
-      device.observer.on('newtransport', (...data) => {
-        log('device newtransport', { data });
       });
 
       await createProducerTransport(device);
@@ -499,68 +494,12 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
     stopScreenShareStream
   });
 
-  const onNewProducer = useCallback<TNewProducerParams>(
-    ({ remoteUserId, kind }) => {
-      log('VoiceProvider onNewProducer', { remoteUserId, kind });
-      consume(remoteUserId, kind, routerRtpCapabilities.current!);
-    },
-    [consume, log]
-  );
-
-  const onProducerClosed = useCallback<TProducerClosedParams>(
-    ({ remoteUserId, kind }) => {
-      log('VoiceProvider onProducerClosed', { remoteUserId, kind });
-      removeRemoteStream(remoteUserId, kind);
-    },
-    [removeRemoteStream, log]
-  );
-
-  const onUserLeave = useCallback<TUserLeaveParams>(
-    ({ userId }) => {
-      log('VoiceProvider onUserLeave', { userId });
-      clearRemoteStreamsForUser(userId);
-    },
-    [clearRemoteStreamsForUser, log]
-  );
-
-  // TODO: move these into the hook
   useVoiceEvents({
-    onNewProducer,
-    onProducerClosed,
-    onUserLeave
+    consume,
+    removeRemoteStream,
+    clearRemoteStreamsForUser,
+    rtpCapabilities: routerRtpCapabilities.current!
   });
-
-  // const cleanup = useCallback(() => {
-  //   if (producerTransport.current) {
-  //     producerTransport.current.close();
-  //     producerTransport.current = undefined;
-  //   }
-
-  //   if (consumerTransport.current) {
-  //     consumerTransport.current.close();
-  //     consumerTransport.current = undefined;
-  //   }
-
-  //   Object.keys(consumers.current).forEach((userId) => {
-  //     const userConsumers = consumers.current[userId];
-
-  //     Object.keys(userConsumers).forEach((kind) => {
-  //       userConsumers[kind].close();
-  //     });
-  //   });
-
-  //   consumers.current = {};
-
-  //   setLoading(true);
-  //   clearRemoteStreams();
-  //   clearLocalStreams();
-  // }, [clearLocalStreams, clearRemoteStreams]);
-
-  // useEffect(() => {
-  //   return () => {
-  //     cleanup();
-  //   };
-  // }, [cleanup]);
 
   const contextValue = useMemo<TVoiceProvider>(
     () => ({
