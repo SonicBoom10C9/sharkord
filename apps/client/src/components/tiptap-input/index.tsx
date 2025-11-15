@@ -80,7 +80,6 @@ const TiptapInput = memo(
 
             event.preventDefault();
             onSubmit?.();
-
             return true;
           }
 
@@ -105,7 +104,12 @@ const TiptapInput = memo(
 
     useEffect(() => {
       if (editor && value !== undefined) {
-        editor.commands.setContent(value);
+        const currentContent = editor.getHTML();
+
+        // only update if content is actually different to avoid cursor jumping
+        if (currentContent !== value) {
+          editor.commands.setContent(value);
+        }
       }
     }, [editor, value]);
 
