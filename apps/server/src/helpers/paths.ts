@@ -19,10 +19,12 @@ const INTERFACE_PATH = path.resolve(DATA_PATH, 'interface', SERVER_VERSION);
 const DRIZZLE_PATH = path.resolve(DATA_PATH, 'drizzle');
 const MEDIASOUP_PATH = path.resolve(DATA_PATH, 'mediasoup');
 const CONFIG_INI_PATH = path.resolve(DATA_PATH, 'config.ini');
-const MEDIASOUP_BINARY_PATH = path.join(
-  MEDIASOUP_PATH,
-  SHARKORD_MEDIASOUP_BIN_NAME || 'mediasoup-worker'
-);
+const MEDIASOUP_BINARY_PATH = IS_DEVELOPMENT
+  ? undefined
+  : path.join(
+      MEDIASOUP_PATH,
+      SHARKORD_MEDIASOUP_BIN_NAME || 'mediasoup-worker'
+    );
 
 const SRC_MIGRATIONS_PATH = path.join(process.cwd(), 'src', 'db', 'migrations');
 

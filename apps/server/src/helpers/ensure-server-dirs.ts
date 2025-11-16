@@ -10,6 +10,8 @@ const ensureServerDirs = async () => {
   ];
 
   const promises = pathsList.map(async (dir) => {
+    if (!dir || typeof dir !== 'string') return;
+
     const resolvedPath = path.resolve(process.cwd(), dir);
     const extension = path.extname(resolvedPath);
 

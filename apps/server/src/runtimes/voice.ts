@@ -279,26 +279,6 @@ class VoiceRuntime {
   private createRouter = async () => {
     const router = await mediaSoupWorker.createRouter(defaultRouterOptions);
 
-    router.observer.on('close', () => {
-      logger.debug('Mediasoup router closed for channel %d', this.id);
-    });
-
-    router.observer.on('newtransport', (transport) => {
-      logger.debug(
-        'New transport created for channel %d with id %s',
-        this.id,
-        transport.id
-      );
-    });
-
-    router.observer.on('newrtpobserver', (producer) => {
-      logger.debug(
-        'New RTP observer created for channel %d with id %s',
-        this.id,
-        producer.id
-      );
-    });
-
     this.router = router;
   };
 
@@ -389,6 +369,7 @@ class VoiceRuntime {
     transport.on('icestatechange', (state) => {
       if (state === 'disconnected') {
         logger.warn('Producer transport ICE disconnected for user %d', userId);
+
         setTimeout(() => {
           if (transport.iceState === 'disconnected') {
             this.removeProducerTransport(userId);

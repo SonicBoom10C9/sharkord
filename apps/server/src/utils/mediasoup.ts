@@ -1,5 +1,6 @@
 import mediasoup from 'mediasoup';
 import { config } from '../config.js';
+import { MEDIASOUP_BINARY_PATH } from '../helpers/paths.js';
 import { logger } from '../logger.js';
 
 let mediaSoupWorker: mediasoup.types.Worker<mediasoup.types.AppData>;
@@ -9,7 +10,8 @@ const loadMediasoup = async () => {
     rtcMinPort: +config.mediasoup.worker.rtcMinPort,
     rtcMaxPort: +config.mediasoup.worker.rtcMaxPort,
     logLevel: 'debug',
-    disableLiburing: true
+    disableLiburing: true,
+    workerBin: MEDIASOUP_BINARY_PATH
   };
 
   mediaSoupWorker = await mediasoup.createWorker(workerConfig);

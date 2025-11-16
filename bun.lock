@@ -88,7 +88,7 @@
         "ini": "^5.0.0",
         "jsonwebtoken": "^9.0.2",
         "link-preview-js": "^3.1.0",
-        "mediasoup": "^3.19.9",
+        "mediasoup": "^3.19.11",
         "mitt": "^3.0.1",
         "queue": "^7.0.0",
         "rxjs": "^7.8.2",
@@ -923,7 +923,7 @@
 
     "mdurl": ["mdurl@2.0.0", "", {}, "sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w=="],
 
-    "mediasoup": ["mediasoup@3.19.9", "", { "dependencies": { "@types/ini": "^4.1.1", "debug": "^4.4.3", "flatbuffers": "^25.9.23", "h264-profile-level-id": "^2.3.1", "ini": "^6.0.0", "node-fetch": "^3.3.2", "supports-color": "^10.2.2", "tar": "^7.5.2" } }, "sha512-z3nMFjnM/pFEsVpvLvyNvKxuGicFtqCwOe2nzs9rEVJ5HiHW8COrSRr0t7HtanckgbJEoYSdYW9o7JB5JP4jBw=="],
+    "mediasoup": ["mediasoup@3.19.11", "", { "dependencies": { "@types/ini": "^4.1.1", "debug": "^4.4.3", "flatbuffers": "^25.9.23", "h264-profile-level-id": "^2.3.1", "ini": "^6.0.0", "node-fetch": "^3.3.2", "supports-color": "^10.2.2", "tar": "^7.5.2" } }, "sha512-RK06kmadDk/4NtWdZkzqFENqhJHepvfKjzpAKMrBoYMIKxBYlIOg/zTyLrkEPoKcsZ/gWTzV3M4WrExPiHi4ew=="],
 
     "mediasoup-client": ["mediasoup-client@3.18.0", "", { "dependencies": { "@types/debug": "^4.1.12", "@types/events-alias": "npm:@types/events@^3.0.3", "awaitqueue": "^3.3.0", "debug": "^4.4.3", "events-alias": "npm:events@^3.3.0", "fake-mediastreamtrack": "^2.2.1", "h264-profile-level-id": "^2.3.1", "sdp-transform": "^3.0.0", "supports-color": "^10.2.2" } }, "sha512-M+evIOUCeLxvHmSTu4GRqPnusCRi888VzGQQV4xEf4lrDhq7nQDSaoN60WGu1Wf8p6M93XCuAZnzRIzEOL3M0A=="],
 

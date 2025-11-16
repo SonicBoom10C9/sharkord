@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { removeChannel } from '../../db/mutations/channels/remove-channel';
 import { publishChannel } from '../../db/publishers';
 import { enqueueActivityLog } from '../../queues/activity-log';
+import { VoiceRuntime } from '../../runtimes/voice';
 import { protectedProcedure } from '../../utils/trpc';
 
 const deleteChannelRoute = protectedProcedure
@@ -19,6 +20,12 @@ const deleteChannelRoute = protectedProcedure
 
     if (!removedChannel) {
       throw new TRPCError({ code: 'NOT_FOUND' });
+    }
+
+    const runtime = VoiceRuntime.findById(removedChannel.id);
+
+    if (runtime) {
+      runtime.destroy();
     }
 
     publishChannel(removedChannel.id, 'delete');

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createChannel } from '../../db/mutations/channels/create-channel';
 import { publishChannel } from '../../db/publishers';
 import { enqueueActivityLog } from '../../queues/activity-log';
+import { VoiceRuntime } from '../../runtimes/voice';
 import { protectedProcedure } from '../../utils/trpc';
 
 const addChannelRoute = protectedProcedure
@@ -21,6 +22,8 @@ const addChannelRoute = protectedProcedure
       type: input.type,
       categoryId: input.categoryId
     });
+
+    new VoiceRuntime(channel.id);
 
     publishChannel(channel.id, 'create');
     enqueueActivityLog({
