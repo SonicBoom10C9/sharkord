@@ -25,7 +25,6 @@ CREATE TABLE `channels` (
 	`type` text NOT NULL,
 	`name` text NOT NULL,
 	`topic` text,
-	`password` text,
 	`position` integer NOT NULL,
 	`categoryId` integer,
 	`createdAt` integer NOT NULL,
@@ -185,12 +184,12 @@ CREATE TABLE `settings` (
 	`server_id` text NOT NULL,
 	`secretToken` text,
 	`logoId` integer,
-	`allowNewUsers` integer DEFAULT true NOT NULL,
-	`storageUploadsEnabled` integer DEFAULT true NOT NULL,
-	`storageQuota` integer DEFAULT 107374182400 NOT NULL,
-	`storageUploadMaxFileSize` integer DEFAULT 2147483648 NOT NULL,
-	`storageSpaceQuotaByUser` integer DEFAULT 0 NOT NULL,
-	`storageOverflowAction` text DEFAULT 'prevent' NOT NULL,
+	`allowNewUsers` integer NOT NULL,
+	`storageUploadsEnabled` integer NOT NULL,
+	`storageQuota` integer NOT NULL,
+	`storageUploadMaxFileSize` integer NOT NULL,
+	`storageSpaceQuotaByUser` integer NOT NULL,
+	`storageOverflowAction` text NOT NULL,
 	FOREIGN KEY (`logoId`) REFERENCES `files`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

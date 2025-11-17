@@ -65,7 +65,6 @@ const channels = sqliteTable(
     type: text('type').notNull(),
     name: text('name').notNull(),
     topic: text('topic'),
-    password: text('password'),
     position: integer('position').notNull(),
     categoryId: integer('categoryId').references(() => categories.id),
     createdAt: integer('createdAt').notNull(),

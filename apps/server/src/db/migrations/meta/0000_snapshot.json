@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "fdd3f2b8-9df3-40a1-a7f0-b0905eb4672b",
+  "id": "20546765-2193-4737-888a-51cb1f66d7c1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity_log": {
@@ -171,13 +171,6 @@
         },
         "topic": {
           "name": "topic",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "password": {
-          "name": "password",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1295,48 +1288,42 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": true
+          "autoincrement": false
         },
         "storageUploadsEnabled": {
           "name": "storageUploadsEnabled",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": true
+          "autoincrement": false
         },
         "storageQuota": {
           "name": "storageQuota",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": 107374182400
+          "autoincrement": false
         },
         "storageUploadMaxFileSize": {
           "name": "storageUploadMaxFileSize",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": 2147483648
+          "autoincrement": false
         },
         "storageSpaceQuotaByUser": {
           "name": "storageSpaceQuotaByUser",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": 0
+          "autoincrement": false
         },
         "storageOverflowAction": {
           "name": "storageOverflowAction",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'prevent'"
+          "autoincrement": false
         }
       },
       "indexes": {
