@@ -9,7 +9,6 @@ import type {
   TJoinedRole,
   TPublicServerSettings,
   TServerInfo,
-  TUser,
   TVoiceMap,
   TVoiceUserState
 } from '@sharkord/shared';
@@ -23,11 +22,11 @@ export interface IServerState {
   categories: TCategory[];
   channels: TChannel[];
   emojis: TJoinedEmoji[];
+  ownUserId: number | undefined;
   selectedChannelId: number | undefined;
   currentVoiceChannelId: number | undefined;
   messagesMap: TMessagesMap;
   users: TJoinedPublicUser[];
-  ownUser?: TUser;
   roles: TJoinedRole[];
   publicSettings: TPublicServerSettings | undefined;
   info: TServerInfo | undefined;
@@ -45,6 +44,7 @@ const initialState: IServerState = {
   connecting: false,
   disconnectInfo: undefined,
   serverId: undefined,
+  ownUserId: undefined,
   categories: [],
   channels: [],
   emojis: [],
@@ -52,7 +52,6 @@ const initialState: IServerState = {
   currentVoiceChannelId: undefined,
   messagesMap: {},
   users: [],
-  ownUser: undefined,
   roles: [],
   publicSettings: undefined,
   info: undefined,
@@ -94,17 +93,6 @@ export const serverSlice = createSlice({
     setLoadingInfo: (state, action: PayloadAction<boolean>) => {
       state.loadingInfo = action.payload;
     },
-    setOwnUser: (state, action: PayloadAction<TUser | undefined>) => {
-      state.ownUser = action.payload;
-    },
-    updateOwnUser: (state, action: PayloadAction<Partial<TUser>>) => {
-      if (!state.ownUser) return;
-
-      state.ownUser = {
-        ...state.ownUser,
-        ...action.payload
-      };
-    },
     setDisconnectInfo: (
       state,
       action: PayloadAction<TDisconnectInfo | undefined>
@@ -118,7 +106,7 @@ export const serverSlice = createSlice({
         categories: TCategory[];
         channels: TChannel[];
         users: TJoinedPublicUser[];
-        ownUser: TUser;
+        ownUserId: number;
         roles: TJoinedRole[];
         emojis: TJoinedEmoji[];
         publicSettings: TPublicServerSettings | undefined;
@@ -130,8 +118,8 @@ export const serverSlice = createSlice({
       state.channels = action.payload.channels;
       state.emojis = action.payload.emojis;
       state.users = action.payload.users;
-      state.ownUser = action.payload.ownUser;
       state.roles = action.payload.roles;
+      state.ownUserId = action.payload.ownUserId;
       state.publicSettings = action.payload.publicSettings;
       state.voiceMap = action.payload.voiceMap;
     },
@@ -237,14 +225,6 @@ export const serverSlice = createSlice({
         ...state.users[index],
         ...action.payload.user
       };
-
-      // also spread to ownUser if the IDs match
-      if (state.ownUser && state.ownUser.id === action.payload.userId) {
-        state.ownUser = {
-          ...state.ownUser,
-          ...action.payload.user
-        };
-      }
     },
     addUser: (state, action: PayloadAction<TJoinedPublicUser>) => {
       const exists = state.users.find((u) => u.id === action.payload.id);

@@ -5,12 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip } from '@/components/ui/tooltip';
 import { requestConfirmation } from '@/features/dialogs/actions';
-import { useOwnUserRole } from '@/features/server/hooks';
 import { getTrpcError } from '@/helpers/parse-trpc-errors';
 import { useForm } from '@/hooks/use-form';
 import { getTRPCClient } from '@/lib/trpc';
 import { OWNER_ROLE_ID, type TJoinedRole } from '@sharkord/shared';
-import { AlertCircle, Info, Star, Trash2 } from 'lucide-react';
+import { Info, Star, Trash2 } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { PermissionList } from './permissions-list';
@@ -23,15 +22,12 @@ type TUpdateRoleProps = {
 
 const UpdateRole = memo(
   ({ selectedRole, setSelectedRoleId, refetch }: TUpdateRoleProps) => {
-    const ownUserRole = useOwnUserRole();
-
     const { setTrpcErrors, r, onChange, values } = useForm({
       name: selectedRole.name,
       color: selectedRole.color,
       permissions: selectedRole.permissions
     });
 
-    const isOwnUserRole = ownUserRole?.id === selectedRole.id;
     const isOwnerRole = selectedRole.id === OWNER_ROLE_ID;
 
     const onDeleteRole = useCallback(async () => {
@@ -122,7 +118,7 @@ const UpdateRole = memo(
             </Alert>
           )}
 
-          {isOwnerRole ? (
+          {isOwnerRole && (
             <Alert variant="default">
               <Info />
               <AlertDescription>
@@ -130,19 +126,6 @@ const UpdateRole = memo(
                 be deleted or have its permissions changed.
               </AlertDescription>
             </Alert>
-          ) : (
-            <>
-              {isOwnUserRole && (
-                <Alert variant="default">
-                  <AlertCircle />
-                  <AlertDescription>
-                    You are editing your own role. Changing permissions or
-                    deleting this role may affect your access to certain
-                    features.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </>
           )}
 
           <div className="space-y-4">

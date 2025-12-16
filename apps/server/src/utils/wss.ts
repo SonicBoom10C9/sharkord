@@ -12,7 +12,6 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import { getUserById } from '../db/queries/users/get-user-by-id';
 import { getUserByToken } from '../db/queries/users/get-user-by-token';
-import { getUserRole } from '../db/queries/users/get-user-role';
 import { getWsInfo } from '../helpers/get-ws-info';
 import { logger } from '../logger';
 import { enqueueActivityLog } from '../queues/activity-log';
@@ -20,6 +19,7 @@ import { appRouter } from '../routers';
 import { VoiceRuntime } from '../runtimes/voice';
 // // this needs to be here because of tsc weirdness, check this in the future (when check-types on client it spits server errors)
 // import '../types/websocket';
+import { getUserRoles } from '../routers/users/get-user-roles';
 import { pubsub } from './pubsub';
 
 let wss: WebSocketServer;
@@ -112,17 +112,25 @@ const createWsServer = async (server: http.Server) => {
 
           if (!user) return false;
 
-          if (user.roleId === OWNER_ROLE_ID) return true; // owner always has all permissions
+          const roles = await getUserRoles(user.id);
 
-          const role = await getUserRole(user.id);
+          const hasOwnerRole = roles.some((r) => r.id === OWNER_ROLE_ID);
 
-          if (!role) return false;
+          if (hasOwnerRole) return true; // owner always has all permissions
 
-          if (Array.isArray(targetPermission)) {
-            return targetPermission.every((p) => role.permissions.includes(p));
+          const permissionsSet = new Set<Permission>();
+
+          for (const role of roles) {
+            for (const permission of role.permissions) {
+              permissionsSet.add(permission);
+            }
           }
 
-          return role.permissions.includes(targetPermission);
+          if (Array.isArray(targetPermission)) {
+            return targetPermission.every((p) => permissionsSet.has(p));
+          }
+
+          return permissionsSet.has(targetPermission);
         };
 
         const getOwnWs = () => {

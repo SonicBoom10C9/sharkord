@@ -15,6 +15,7 @@ import {
   messageReactions,
   invites,
   activityLog,
+  userRoles,
 } from "../../../apps/server/src/db/schema";
 import type { UserStatus } from "./types";
 import type { Permission } from "./statics";
@@ -34,6 +35,7 @@ export type TNotificationSound = InferSelectModel<typeof notificationSounds>;
 export type TMessageReaction = InferSelectModel<typeof messageReactions>;
 export type TInvite = InferSelectModel<typeof invites>;
 export type TActivityLog = InferSelectModel<typeof activityLog>;
+export type TUserRole = InferSelectModel<typeof userRoles>;
 
 export type TISettings = InferInsertModel<typeof settings>;
 export type TIRole = InferInsertModel<typeof roles>;
@@ -50,6 +52,7 @@ export type TINotificationSound = InferInsertModel<typeof notificationSounds>;
 export type TIMessageReaction = InferInsertModel<typeof messageReactions>;
 export type TIInvite = InferInsertModel<typeof invites>;
 export type TIActivityLog = InferInsertModel<typeof activityLog>;
+export type TIUserRole = InferInsertModel<typeof userRoles>;
 
 export type TStorageSettings = Pick<
   TSettings,
@@ -66,7 +69,6 @@ type TPublicUser = Pick<
   TJoinedUser,
   | "id"
   | "name"
-  | "roleId"
   | "bannerColor"
   | "bio"
   | "avatar"
@@ -101,11 +103,13 @@ export type TJoinedEmoji = TEmoji & {
 export type TJoinedUser = TUser & {
   avatar: TFile | null;
   banner: TFile | null;
+  roleIds: number[];
 };
 
 export type TJoinedPublicUser = TPublicUser & {
   avatar: TFile | null;
   banner: TFile | null;
+  roleIds: number[];
 };
 
 export type TJoinedSettings = TSettings & {

@@ -7,12 +7,12 @@ import {
   connectingSelector,
   disconnectInfoSelector,
   infoSelector,
-  ownUserRoleSelector,
+  ownUserRolesSelector,
   ownVoiceUserSelector,
   publicServerSettingsSelector,
   serverNameSelector,
   typingUsersByChannelIdSelector,
-  userRoleSelector,
+  userRolesSelector,
   voiceUsersByChannelIdSelector
 } from './selectors';
 
@@ -27,37 +27,43 @@ export const useServerName = () => useSelector(serverNameSelector);
 export const usePublicServerSettings = () =>
   useSelector(publicServerSettingsSelector);
 
-export const useOwnUserRole = () => useSelector(ownUserRoleSelector);
+export const useOwnUserRoles = () => useSelector(ownUserRolesSelector);
 
 export const useInfo = () => useSelector(infoSelector);
 
 export const useCan = () => {
-  const ownUserRole = useOwnUserRole();
+  const ownUserRoles = useOwnUserRoles();
 
   const can = useCallback(
     (permission: Permission | Permission[]) => {
-      if (!ownUserRole) return false;
+      const hasOwnerRole = ownUserRoles.find(
+        (role) => role.id === OWNER_ROLE_ID
+      );
 
-      if (ownUserRole.id === OWNER_ROLE_ID) {
-        return true;
+      if (hasOwnerRole) return true;
+
+      const permissionsToCheck = Array.isArray(permission)
+        ? permission
+        : [permission];
+
+      for (const role of ownUserRoles) {
+        for (const perm of role.permissions) {
+          if (permissionsToCheck.includes(perm)) {
+            return true;
+          }
+        }
       }
 
-      if (Array.isArray(permission)) {
-        return !!permission.some((perm) =>
-          ownUserRole.permissions?.includes(perm)
-        );
-      }
-
-      return !!ownUserRole.permissions?.includes(permission);
+      return false;
     },
-    [ownUserRole]
+    [ownUserRoles]
   );
 
   return can;
 };
 
-export const useUserRole = (userId: number) =>
-  useSelector((state: IRootState) => userRoleSelector(state, userId));
+export const useUserRoles = (userId: number) =>
+  useSelector((state: IRootState) => userRolesSelector(state, userId));
 
 export const useTypingUsersByChannelId = (channelId: number) =>
   useSelector((state: IRootState) =>

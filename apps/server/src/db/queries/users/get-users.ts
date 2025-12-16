@@ -2,7 +2,7 @@ import type { TJoinedUser } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { db } from '../..';
-import { files, users } from '../../schema';
+import { files, userRoles, users } from '../../schema';
 
 const getUsers = async (): Promise<TJoinedUser[]> => {
   const avatarFiles = alias(files, 'avatarFiles');
@@ -12,7 +12,6 @@ const getUsers = async (): Promise<TJoinedUser[]> => {
     .select({
       id: users.id,
       name: users.name,
-      roleId: users.roleId,
       bannerColor: users.bannerColor,
       bio: users.bio,
       avatarId: users.avatarId,
@@ -33,10 +32,27 @@ const getUsers = async (): Promise<TJoinedUser[]> => {
     .leftJoin(bannerFiles, eq(users.bannerId, bannerFiles.id))
     .all();
 
+  // Get role IDs for all users
+  const rolesByUser = await db
+    .select({
+      userId: userRoles.userId,
+      roleId: userRoles.roleId
+    })
+    .from(userRoles)
+    .all();
+
+  const rolesMap = rolesByUser.reduce(
+    (acc, { userId, roleId }) => {
+      if (!acc[userId]) acc[userId] = [];
+      acc[userId].push(roleId);
+      return acc;
+    },
+    {} as Record<number, number[]>
+  );
+
   return results.map((result) => ({
     id: result.id,
     name: result.name,
-    roleId: result.roleId,
     bannerColor: result.bannerColor,
     bio: result.bio,
     avatarId: result.avatarId,
@@ -50,7 +66,8 @@ const getUsers = async (): Promise<TJoinedUser[]> => {
     lastLoginAt: result.lastLoginAt,
     banned: result.banned,
     banReason: result.banReason,
-    bannedAt: result.bannedAt
+    bannedAt: result.bannedAt,
+    roleIds: rolesMap[result.id] || []
   }));
 };
 

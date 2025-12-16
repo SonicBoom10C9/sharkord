@@ -31,14 +31,27 @@ export const publicServerSettingsSelector = (state: IRootState) =>
 
 export const infoSelector = (state: IRootState) => state.server.info;
 
-export const ownUserRoleSelector = createSelector(
+export const ownUserRolesSelector = createSelector(
   [ownUserSelector, rolesSelector],
-  (ownUser, roles) => roles.find((role) => role.id === ownUser?.roleId)
+  (ownUser, roles) => {
+    console.log('!', { ownUser, roles });
+
+    if (!ownUser?.roleIds) return [];
+    return roles.filter((role) => ownUser.roleIds.includes(role.id));
+  }
 );
 
-export const userRoleSelector = createSelector(
+export const userRolesSelector = createSelector(
   [rolesSelector, userByIdSelector],
-  (roles, user) => roles.find((role) => role.id === user?.roleId)
+  (roles, user) => {
+    if (!user?.roleIds) return [];
+    return roles.filter((role) => user.roleIds.includes(role.id));
+  }
+);
+
+export const userRolesIdsSelector = createSelector(
+  [userByIdSelector],
+  (user) => user?.roleIds || []
 );
 
 export const typingUsersByChannelIdSelector = createSelector(

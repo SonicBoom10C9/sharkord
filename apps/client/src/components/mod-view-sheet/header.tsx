@@ -5,20 +5,52 @@ import {
   requestConfirmation,
   requestTextInput
 } from '@/features/dialogs/actions';
+import { useUserRoles } from '@/features/server/hooks';
 import { useOwnUserId, useUserStatus } from '@/features/server/users/hooks';
 import { getTrpcError } from '@/helpers/parse-trpc-errors';
 import { getTRPCClient } from '@/lib/trpc';
 import { UserStatus } from '@sharkord/shared';
-import { Gavel, Shield, UserMinus } from 'lucide-react';
+import { Gavel, Plus, UserMinus } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Dialog } from '../dialogs/dialogs';
+import { RoleBadge } from '../role-badge';
 import { useModViewContext } from './context';
 
 const Header = memo(() => {
   const ownUserId = useOwnUserId();
   const { user, refetch } = useModViewContext();
   const status = useUserStatus(user.id);
+  const userRoles = useUserRoles(user.id);
+
+  const onRemoveRole = useCallback(
+    async (roleId: number, roleName: string) => {
+      const answer = await requestConfirmation({
+        title: 'Remove Role',
+        message: `Are you sure you want to remove the role "${roleName}" from this user?`,
+        confirmLabel: 'Remove'
+      });
+
+      if (!answer) {
+        return;
+      }
+
+      const trpc = getTRPCClient();
+
+      try {
+        await trpc.users.removeRole.mutate({
+          userId: user.id,
+          roleId
+        });
+        toast.success('Role removed successfully');
+      } catch (error) {
+        toast.error(getTrpcError(error, 'Failed to remove role'));
+      } finally {
+        refetch();
+      }
+    },
+    [user.id, refetch]
+  );
 
   const onKick = useCallback(async () => {
     const reason = await requestTextInput({
@@ -126,13 +158,20 @@ const Header = memo(() => {
           <Gavel className="h-4 w-4" />
           {user.banned ? 'Unban' : 'Ban'}
         </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 items-center">
+        {userRoles.map((role) => (
+          <RoleBadge key={role.id} role={role} onRemoveRole={onRemoveRole} />
+        ))}
         <Button
           variant="outline"
           size="sm"
-          onClick={() => openDialog(Dialog.CHANGE_ROLE, { user, refetch })}
+          className="h-6 px-2 text-xs"
+          onClick={() => openDialog(Dialog.ASSIGN_ROLE, { user, refetch })}
         >
-          <Shield className="h-4 w-4" />
-          Change Role
+          <Plus className="h-3 w-3" />
+          Assign Role
         </Button>
       </div>
     </div>

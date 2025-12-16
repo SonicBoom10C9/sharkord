@@ -1,5 +1,5 @@
 import { setModViewOpen } from '@/features/app/actions';
-import { useUserRole } from '@/features/server/hooks';
+import { useUserRoles } from '@/features/server/hooks';
 import { useUserById } from '@/features/server/users/hooks';
 import { getFileUrl } from '@/helpers/get-file-url';
 import { Permission, UserStatus } from '@sharkord/shared';
@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { ShieldCheck, UserCog } from 'lucide-react';
 import { memo } from 'react';
 import { Protect } from '../protect';
+import { RoleBadge } from '../role-badge';
 import { IconButton } from '../ui/icon-button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { UserAvatar } from '../user-avatar';
@@ -19,7 +20,7 @@ type TUserPopoverProps = {
 
 const UserPopover = memo(({ userId, children }: TUserPopoverProps) => {
   const user = useUserById(userId);
-  const role = useUserRole(userId)!;
+  const roles = useUserRoles(userId);
 
   if (!user) return <>{children}</>;
 
@@ -73,17 +74,17 @@ const UserPopover = memo(({ userId, children }: TUserPopoverProps) => {
                   {user.status || UserStatus.OFFLINE}
                 </span>
               </div>
-              <div className="w-1 h-1 rounded-full bg-white" />
-              <span
-                className="text-xs font-medium"
-                style={{
-                  color: role.color
-                }}
-              >
-                {role.name}
-              </span>
             </div>
           </div>
+
+          {roles.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {roles.map((role) => (
+                <RoleBadge key={role.id} role={role} />
+              ))}
+            </div>
+          )}
+
           {user.bio && (
             <div className="mt-3">
               <p className="text-sm text-foreground leading-relaxed">

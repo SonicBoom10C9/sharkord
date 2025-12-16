@@ -1,6 +1,7 @@
 import {
   ChannelType,
   DEFAULT_ROLE_PERMISSIONS,
+  OWNER_ROLE_ID,
   Permission,
   sha256,
   STORAGE_MAX_FILE_SIZE,
@@ -25,6 +26,7 @@ import {
   rolePermissions,
   roles,
   settings,
+  userRoles,
   users
 } from './schema';
 
@@ -124,7 +126,6 @@ const seedDatabase = async () => {
     {
       identity: await sha256(randomUUIDv7()),
       name: 'Sharkord',
-      roleId: 2, // Member
       avatarId: null,
       password: 'sharkord',
       bannerId: null,
@@ -167,6 +168,12 @@ const seedDatabase = async () => {
       });
     }
   }
+
+  await db.insert(userRoles).values({
+    userId: 1,
+    roleId: OWNER_ROLE_ID,
+    createdAt: firstStart
+  });
 
   const notice = [
     chalk.redBright.bold('🚨🚨 I M P O R T A N T 🚨🚨'),

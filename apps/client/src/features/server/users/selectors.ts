@@ -31,18 +31,22 @@ export const usersSelector = createSelector(
   }
 );
 
-export const ownUserSelector = (state: IRootState) => state.server.ownUser;
+export const ownUserIdSelector = (state: IRootState) => state.server.ownUserId;
 
-export const ownUserIdSelector = (state: IRootState) =>
-  state.server.ownUser?.id;
+export const ownUserSelector = createSelector(
+  [ownUserIdSelector, usersSelector],
+  (ownUserId, users) => users.find((user) => user.id === ownUserId)
+);
 
 export const userByIdSelector = createSelector(
   [usersSelector, (_, userId: number) => userId],
   (users, userId) => users.find((user) => user.id === userId)
 );
 
-export const isOwnUserSelector = (state: IRootState, userId: number) =>
-  state.server.ownUser?.id === userId;
+export const isOwnUserSelector = createSelector(
+  [ownUserIdSelector, (_, userId: number) => userId],
+  (ownUserId, userId) => ownUserId === userId
+);
 
 export const ownPublicUserSelector = createSelector(
   [ownUserIdSelector, usersSelector],

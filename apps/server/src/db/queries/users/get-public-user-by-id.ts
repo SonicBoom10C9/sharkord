@@ -2,7 +2,7 @@ import { type TJoinedPublicUser } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { db } from '../..';
-import { files, users } from '../../schema';
+import { files, userRoles, users } from '../../schema';
 
 const getPublicUserById = async (
   userId: number
@@ -14,7 +14,6 @@ const getPublicUserById = async (
     .select({
       id: users.id,
       name: users.name,
-      roleId: users.roleId,
       bannerColor: users.bannerColor,
       bio: users.bio,
       banned: users.banned,
@@ -32,10 +31,15 @@ const getPublicUserById = async (
 
   if (!results) return undefined;
 
+  const roles = await db
+    .select({ roleId: userRoles.roleId })
+    .from(userRoles)
+    .where(eq(userRoles.userId, userId))
+    .all();
+
   return {
     id: results.id,
     name: results.name,
-    roleId: results.roleId,
     bannerColor: results.bannerColor,
     bio: results.bio,
     avatarId: results.avatarId,
@@ -43,7 +47,8 @@ const getPublicUserById = async (
     avatar: results.avatar,
     banner: results.banner,
     createdAt: results.createdAt,
-    banned: results.banned
+    banned: results.banned,
+    roleIds: roles.map((r) => r.roleId)
   };
 };
 

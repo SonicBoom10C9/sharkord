@@ -1,7 +1,7 @@
 import { type TUser } from '@sharkord/shared';
 import { db } from '../..';
 import { getDefaultRole } from '../../queries/roles/get-default-role';
-import { users } from '../../schema';
+import { userRoles, users } from '../../schema';
 
 const createUser = async (
   identity: string,
@@ -18,7 +18,6 @@ const createUser = async (
     .values({
       name: 'SharkordUser',
       identity,
-      roleId: defaultRole?.id,
       createdAt: Date.now(),
       password
     })
@@ -27,6 +26,12 @@ const createUser = async (
   if (!user) {
     throw new Error('Failed to create user');
   }
+
+  await db.insert(userRoles).values({
+    roleId: defaultRole.id,
+    userId: user.id,
+    createdAt: Date.now()
+  });
 
   return user;
 };

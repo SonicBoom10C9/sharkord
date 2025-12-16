@@ -1,7 +1,7 @@
 import { closeDialogs } from '@/features/dialogs/actions';
 import { useDialogInfo } from '@/features/dialogs/hooks';
 import { createElement, memo } from 'react';
-import { ChangeRoleDialog } from './change-role';
+import { AssignRoleDialog } from './assign-role';
 import ConfirmActionDialog from './confirm-action';
 import { CreateCategoryDialog } from './create-category';
 import { CreateChannelDialog } from './create-channel';
@@ -16,7 +16,7 @@ const DialogsMap: any = {
   [Dialog.CREATE_CHANNEL]: CreateChannelDialog,
   [Dialog.TEXT_INPUT]: TextInputDialog,
   [Dialog.SERVER_PASSWORD]: ServerPasswordDialog,
-  [Dialog.CHANGE_ROLE]: ChangeRoleDialog,
+  [Dialog.ASSIGN_ROLE]: AssignRoleDialog,
   [Dialog.CREATE_INVITE]: CreateInviteDialog,
   [Dialog.CREATE_CATEGORY]: CreateCategoryDialog
 };

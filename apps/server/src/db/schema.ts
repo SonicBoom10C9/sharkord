@@ -104,9 +104,6 @@ const users = sqliteTable(
     name: text('name').notNull(),
     avatarId: integer('avatarId').references(() => files.id),
     bannerId: integer('bannerId').references(() => files.id),
-    roleId: integer('roleId')
-      .notNull()
-      .references(() => roles.id),
     bio: text('bio'),
     banned: integer('banned', { mode: 'boolean' }).notNull().default(false),
     banReason: text('banReason'),
@@ -119,8 +116,25 @@ const users = sqliteTable(
     updatedAt: integer('updatedAt')
   },
   (t) => ({
-    identityIdx: uniqueIndex('users_identity_idx').on(t.identity),
-    roleIdx: index('users_role_idx').on(t.roleId)
+    identityIdx: uniqueIndex('users_identity_idx').on(t.identity)
+  })
+);
+
+const userRoles = sqliteTable(
+  'user_roles',
+  {
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    roleId: integer('roleId')
+      .notNull()
+      .references(() => roles.id, { onDelete: 'cascade' }),
+    createdAt: integer('createdAt').notNull()
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.roleId] }),
+    userIdx: index('user_roles_user_idx').on(t.userId),
+    roleIdx: index('user_roles_role_idx').on(t.roleId)
   })
 );
 
@@ -328,5 +342,6 @@ export {
   rolePermissions,
   roles,
   settings,
+  userRoles,
   users
 };

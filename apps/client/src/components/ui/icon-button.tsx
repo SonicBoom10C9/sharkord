@@ -17,6 +17,7 @@ const iconButtonVariants = cva(
       },
       size: {
         default: '[&_svg]:size-5',
+        xs: '[&_svg]:size-3',
         sm: '[&_svg]:size-4',
         lg: '[&_svg]:size-6',
         xl: '[&_svg]:size-7'

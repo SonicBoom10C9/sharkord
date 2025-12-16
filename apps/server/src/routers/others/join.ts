@@ -102,11 +102,8 @@ const joinServerRoute = t.procedure
       users: processedPublicUsers,
       serverId: settings.serverId,
       serverName: settings.name,
+      ownUserId: ctx.user.id,
       voiceMap,
-      ownUser: {
-        ...ctx.user,
-        identity: ''
-      },
       roles,
       emojis,
       publicSettings

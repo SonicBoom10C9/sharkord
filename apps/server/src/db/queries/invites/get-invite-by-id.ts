@@ -2,7 +2,7 @@ import type { TJoinedInvite } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { db } from '../..';
-import { files, invites, users } from '../../schema';
+import { files, invites, userRoles, users } from '../../schema';
 
 const getInviteById = async (
   id: number
@@ -16,7 +16,6 @@ const getInviteById = async (
       creator: {
         id: users.id,
         name: users.name,
-        roleId: users.roleId,
         bannerColor: users.bannerColor,
         bio: users.bio,
         banned: users.banned,
@@ -37,12 +36,19 @@ const getInviteById = async (
 
   if (!row) return undefined;
 
+  const roles = await db
+    .select({ roleId: userRoles.roleId })
+    .from(userRoles)
+    .where(eq(userRoles.userId, row.creator.id))
+    .all();
+
   return {
     ...row.invite,
     creator: {
       ...row.creator,
       avatar: row.avatar,
-      banner: row.banner
+      banner: row.banner,
+      roleIds: roles.map((r) => r.roleId)
     }
   };
 };

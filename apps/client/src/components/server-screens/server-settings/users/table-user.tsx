@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserAvatar } from '@/components/user-avatar';
 import { setModViewOpen } from '@/features/app/actions';
-import { useRoleById } from '@/features/server/roles/hooks';
+import { useUserRoles } from '@/features/server/hooks';
 import { useUserStatus } from '@/features/server/users/hooks';
 import { cn } from '@/lib/utils';
 import { UserStatus, type TJoinedUser } from '@sharkord/shared';
@@ -32,7 +32,7 @@ type TTableUserProps = {
 };
 
 const TableUser = memo(({ user }: TTableUserProps) => {
-  const role = useRoleById(user.roleId);
+  const roles = useUserRoles(user.id);
   const status = useUserStatus(user.id);
 
   const onModerateClick = useCallback(() => {
@@ -65,15 +65,12 @@ const TableUser = memo(({ user }: TTableUserProps) => {
         </div>
       </div>
 
-      <div className="flex items-center min-w-0">
+      <div className="flex items-center min-w-0 gap-2">
         <span
-          className="truncate text-xs px-2 py-1 rounded-full"
-          style={{
-            backgroundColor: role?.color || '#6b7280',
-            color: role?.color ? getContrastColor(role.color) : '#ffffff'
-          }}
+          className="text-xs truncate text-muted-foreground"
+          title={roles.map((role) => role.name).join(', ')}
         >
-          {role?.name || 'Unknown'}
+          {roles.map((role) => role.name).join(', ')}
         </span>
       </div>
 

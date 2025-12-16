@@ -2,7 +2,7 @@ import { type TJoinedUser } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/sqlite-core';
 import { db } from '../..';
-import { files, users } from '../../schema';
+import { files, userRoles, users } from '../../schema';
 
 const getUserByIdentity = async (
   identity: string
@@ -17,7 +17,6 @@ const getUserByIdentity = async (
       name: users.name,
       avatarId: users.avatarId,
       bannerId: users.bannerId,
-      roleId: users.roleId,
       bio: users.bio,
       bannerColor: users.bannerColor,
       createdAt: users.createdAt,
@@ -38,10 +37,17 @@ const getUserByIdentity = async (
 
   if (!user) return undefined;
 
+  const roles = await db
+    .select({ roleId: userRoles.roleId })
+    .from(userRoles)
+    .where(eq(userRoles.userId, user.id))
+    .all();
+
   return {
     ...user,
     avatar: user.avatar,
-    banner: user.banner
+    banner: user.banner,
+    roleIds: roles.map((r) => r.roleId)
   };
 };
 
