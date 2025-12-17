@@ -7,10 +7,10 @@ import {
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
-import { getEmojis } from '../../db/queries/emojis/get-emojis';
-import { getPublicUsers } from '../../db/queries/users/get-public-users';
-import { getRoles } from '../../db/queriesv2/roles';
-import { getSettings } from '../../db/queriesv2/server';
+import { getEmojis } from '../../db/queries/emojis';
+import { getRoles } from '../../db/queries/roles';
+import { getSettings } from '../../db/queries/server';
+import { getPublicUsers } from '../../db/queries/users';
 import { categories, channels, users } from '../../db/schema';
 import { logger } from '../../logger';
 import { enqueueActivityLog } from '../../queues/activity-log';

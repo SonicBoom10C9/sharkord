@@ -2,11 +2,11 @@ import { ServerEvents } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { db } from '.';
 import { pubsub } from '../utils/pubsub';
-import { getEmojiById } from './queries/emojis/get-emoji-by-id';
-import { getMessage } from './queries/messages/get-message';
-import { getPublicUserById } from './queries/users/get-public-user-by-id';
-import { getRole } from './queriesv2/roles';
-import { getSettings } from './queriesv2/server';
+import { getEmojiById } from './queries/emojis';
+import { getMessage } from './queries/messages';
+import { getRole } from './queries/roles';
+import { getSettings } from './queries/server';
+import { getPublicUserById } from './queries/users';
 import { categories, channels } from './schema';
 
 const publishMessage = async (

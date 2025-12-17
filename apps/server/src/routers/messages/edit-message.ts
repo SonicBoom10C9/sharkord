@@ -3,7 +3,6 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
 import { publishMessage } from '../../db/publishers';
-import { getRawMessage } from '../../db/queries/messages/get-raw-message';
 import { messages } from '../../db/schema';
 import { enqueueProcessMetadata } from '../../queues/message-metadata';
 import { invariant } from '../../utils/invariant';
@@ -17,7 +16,14 @@ const editMessageRoute = protectedProcedure
     })
   )
   .mutation(async ({ input, ctx }) => {
-    const message = await getRawMessage(input.messageId);
+    const message = await db
+      .select({
+        userId: messages.userId
+      })
+      .from(messages)
+      .where(eq(messages.id, input.messageId))
+      .limit(1)
+      .get();
 
     invariant(message, 'Message not found');
     invariant(

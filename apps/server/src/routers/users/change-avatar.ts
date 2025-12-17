@@ -4,7 +4,7 @@ import z from 'zod';
 import { db } from '../../db';
 import { removeFile } from '../../db/mutations/files';
 import { publishUser } from '../../db/publishers';
-import { getUserById } from '../../db/queries/users/get-user-by-id';
+import { getUserById } from '../../db/queries/users';
 import { users } from '../../db/schema';
 import { fileManager } from '../../utils/file-manager';
 import { protectedProcedure } from '../../utils/trpc';

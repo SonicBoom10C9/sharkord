@@ -2,7 +2,7 @@ import { ActivityLogType, Permission } from '@sharkord/shared';
 import { z } from 'zod';
 import { db } from '../../db';
 import { publishEmoji } from '../../db/publishers';
-import { getUniqueEmojiName } from '../../db/queriesv2/emojis';
+import { getUniqueEmojiName } from '../../db/queries/emojis';
 import { emojis } from '../../db/schema';
 import { enqueueActivityLog } from '../../queues/activity-log';
 import { fileManager } from '../../utils/file-manager';

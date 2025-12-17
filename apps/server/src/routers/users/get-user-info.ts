@@ -1,9 +1,9 @@
 import { Permission } from '@sharkord/shared';
 import z from 'zod';
-import { getFilesByUserId } from '../../db/queries/files/get-files-by-user-id';
-import { getMessagesByUserId } from '../../db/queries/messages/get-messages-by-user-id';
-import { getUserById } from '../../db/queries/users/get-user-by-id';
-import { getLastLogins } from '../../db/queriesv2/logins';
+import { getFilesByUserId } from '../../db/queries/files';
+import { getLastLogins } from '../../db/queries/logins';
+import { getMessagesByUserId } from '../../db/queries/messages';
+import { getUserById } from '../../db/queries/users';
 import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 

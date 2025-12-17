@@ -2,7 +2,6 @@ import type { Permission, TJoinedRole, TRole } from '@sharkord/shared';
 import { eq, getTableColumns, sql } from 'drizzle-orm';
 import { db } from '..';
 import { rolePermissions, roles } from '../schema';
-
 type TQueryResult = TRole & {
   permissions: string | null;
 };

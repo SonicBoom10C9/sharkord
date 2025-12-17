@@ -3,8 +3,8 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
 import { publishMessage } from '../../db/publishers';
-import { getEmojiFileIdByEmojiName } from '../../db/queries/emojis/get-emoji-file-id-by-emoji-name';
-import { getReaction } from '../../db/queries/messages/get-reaction';
+import { getEmojiFileIdByEmojiName } from '../../db/queries/emojis';
+import { getReaction } from '../../db/queries/messages';
 import { messageReactions } from '../../db/schema';
 import { protectedProcedure } from '../../utils/trpc';
 

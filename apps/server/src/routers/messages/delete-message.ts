@@ -4,8 +4,7 @@ import { z } from 'zod';
 import { db } from '../../db';
 import { removeFile } from '../../db/mutations/files';
 import { publishMessage } from '../../db/publishers';
-import { getFilesByMessageId } from '../../db/queries/files/get-files-by-message-id';
-import { getMessage } from '../../db/queries/messages/get-message';
+import { getFilesByMessageId } from '../../db/queries/files';
 import { messages } from '../../db/schema';
 import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
@@ -13,7 +12,15 @@ import { protectedProcedure } from '../../utils/trpc';
 const deleteMessageRoute = protectedProcedure
   .input(z.object({ messageId: z.number() }))
   .mutation(async ({ input, ctx }) => {
-    const targetMessage = await getMessage(input.messageId);
+    const targetMessage = await db
+      .select({
+        userId: messages.userId,
+        channelId: messages.channelId
+      })
+      .from(messages)
+      .where(eq(messages.id, input.messageId))
+      .limit(1)
+      .get();
 
     invariant(targetMessage, 'Message not found');
     invariant(

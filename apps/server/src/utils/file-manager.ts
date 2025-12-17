@@ -10,10 +10,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { db } from '../db';
 import { getUniqueFileId, removeFile } from '../db/mutations/files';
-import { getExceedingOldFiles } from '../db/queries/files/get-exeeding-old-files';
-import { getUsedFileQuota } from '../db/queries/files/get-used-file-quota';
-import { getStorageUsageByUserId } from '../db/queries/users/get-storage-usage-by-user-id';
-import { getSettings } from '../db/queriesv2/server';
+import { getExceedingOldFiles, getUsedFileQuota } from '../db/queries/files';
+import { getSettings } from '../db/queries/server';
+import { getStorageUsageByUserId } from '../db/queries/users';
 import { files } from '../db/schema';
 import { PUBLIC_PATH, TMP_PATH, UPLOADS_PATH } from '../helpers/paths';
 
@@ -124,9 +123,9 @@ class FileManager {
 
   private handleStorageLimits = async (tempFile: TTempFile) => {
     const [settings, userStorage, serverStorage] = await Promise.all([
-      await getSettings(),
-      await getStorageUsageByUserId(tempFile.userId),
-      await getUsedFileQuota()
+      getSettings(),
+      getStorageUsageByUserId(tempFile.userId),
+      getUsedFileQuota()
     ]);
 
     const newTotalStorage = userStorage.usedStorage + tempFile.size;

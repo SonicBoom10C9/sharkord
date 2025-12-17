@@ -47,6 +47,4 @@ const removeFile = async (fileId: number): Promise<TFile | undefined> => {
   return removedFile;
 };
 
-export { removeFile };
-
-export { getUniqueFileId };
+export { getUniqueFileId, removeFile };
