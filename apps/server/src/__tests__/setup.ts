@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite';
-import { afterEach, beforeEach } from 'bun:test';
+import { afterEach, beforeEach, mock } from 'bun:test';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { drizzle, type BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite';
 import { DRIZZLE_PATH, setTestDb } from './mock-db';
@@ -16,6 +16,24 @@ import { seedDatabase } from './seed';
  * 4. Set as the mocked db (via setTestDb)
  * 5. Cleaned up after the test
  */
+
+const noop = () => {};
+
+global.console.log = noop;
+global.console.info = noop;
+global.console.warn = noop;
+global.console.debug = noop;
+
+mock.module('../logger', () => ({
+  logger: {
+    info: noop,
+    warn: noop,
+    error: noop,
+    debug: noop,
+    trace: noop,
+    fatal: noop
+  }
+}));
 
 let tdb: BunSQLiteDatabase;
 

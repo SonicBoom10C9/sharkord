@@ -43,9 +43,11 @@ const addCategoryRoute = protectedProcedure
       userId: ctx.user.id,
       details: {
         categoryName: input.name,
-        categoryId: created.createdAt
+        categoryId: created.id
       }
     });
+
+    return created.id;
   });
 
 export { addCategoryRoute };

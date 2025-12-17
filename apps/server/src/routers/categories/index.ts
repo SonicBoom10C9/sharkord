@@ -8,7 +8,7 @@ import {
 } from './events';
 import { getCategoryRoute } from './get-category';
 import { reorderCategoriesRoute } from './reorder-categories';
-import { updateCategoryRoute } from './update-emoji';
+import { updateCategoryRoute } from './update-category';
 
 export const categoriesRouter = t.router({
   add: addCategoryRoute,

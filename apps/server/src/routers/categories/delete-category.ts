@@ -23,10 +23,7 @@ const deleteCategoryRoute = protectedProcedure
       .returning()
       .get();
 
-    invariant(removedCategory, {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Could not delete category'
-    });
+    invariant(removedCategory, 'Category not found');
 
     await db
       .delete(channels)

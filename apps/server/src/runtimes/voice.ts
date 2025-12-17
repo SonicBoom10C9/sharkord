@@ -84,10 +84,6 @@ const defaultRtcTransportOptions: WebRtcTransportOptions<AppData> = {
   initialAvailableOutgoingBitrate: 1000000
 };
 
-logger.debug(
-  `RTC Transport options\n ${JSON.stringify(defaultRtcTransportOptions, null, 2)}`
-);
-
 const defaultUserState: TVoiceUserState = {
   micMuted: false,
   soundMuted: false,

@@ -26,7 +26,7 @@ import { getUserRoles } from '../routers/users/get-user-roles';
 import { pubsub } from './pubsub';
 import type { Context } from './trpc';
 
-let wss: WebSocketServer;
+let wss: WebSocketServer | undefined;
 
 const usersIpMap = new Map<number, string>();
 
@@ -77,14 +77,18 @@ const createContext = async ({
   };
 
   const getOwnWs = () => {
+    if (!wss) return undefined;
     return Array.from(wss.clients).find((client) => client.token === token);
   };
 
   const getUserWs = (userId: number) => {
+    if (!wss) return undefined;
     return Array.from(wss.clients).find((client) => client.userId === userId);
   };
 
   const getStatusById = (userId: number) => {
+    if (!wss) return UserStatus.OFFLINE;
+
     const isConnected = Array.from(wss.clients).some(
       (ws) => ws.userId === userId
     );
@@ -93,6 +97,8 @@ const createContext = async ({
   };
 
   const setWsUserId = (userId: number) => {
+    if (!wss) return;
+
     const ws = Array.from(wss.clients).find((client) => client.token === token);
 
     if (ws) {
@@ -101,6 +107,8 @@ const createContext = async ({
   };
 
   const getConnectionInfo = () => {
+    if (!wss) return undefined;
+
     const ws = Array.from(wss.clients).find((client) => client.token === token);
 
     if (!ws) return undefined;

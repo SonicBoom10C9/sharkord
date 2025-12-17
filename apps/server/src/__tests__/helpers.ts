@@ -1,16 +1,34 @@
 import { sha256 } from '@sharkord/shared';
 import jwt from 'jsonwebtoken';
+import { appRouter } from '../routers';
+import { createMockContext } from './context';
 import { TEST_SECRET_TOKEN } from './seed';
 
 const getMockedToken = async (userId: number) => {
-  // Use the same hashed test token that's in the database
   const hashedToken = await sha256(TEST_SECRET_TOKEN);
-  
+
   const token = jwt.sign({ userId: userId }, hashedToken, {
-    expiresIn: '86400s' // 1 day
+    expiresIn: '86400s'
   });
 
   return token;
 };
 
-export { getMockedToken };
+const initTest = async (userId: number = 1) => {
+  const mockedToken = await getMockedToken(userId);
+  const caller = appRouter.createCaller(
+    await createMockContext({
+      customToken: mockedToken
+    })
+  );
+
+  const { handshakeHash } = await caller.others.handshake();
+
+  const initialData = await caller.others.joinServer({
+    handshakeHash: handshakeHash
+  });
+
+  return { caller, mockedToken, initialData };
+};
+
+export { getMockedToken, initTest };

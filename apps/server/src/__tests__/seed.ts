@@ -52,12 +52,12 @@ const seedDatabase = async (db: BunSQLiteDatabase) => {
   const initialCategories: TICategory[] = [
     {
       name: 'Text Channels',
-      position: 0,
+      position: 1,
       createdAt: firstStart
     },
     {
       name: 'Voice Channels',
-      position: 1,
+      position: 2,
       createdAt: firstStart
     }
   ];
