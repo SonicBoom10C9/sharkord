@@ -1,12 +1,14 @@
-import { OWNER_ROLE_ID, Permission } from '@sharkord/shared';
+import { ChannelPermission, Permission } from '@sharkord/shared';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { IRootState } from '../store';
+import { useChannelPermissionsById } from './channels/hooks';
 import {
   connectedSelector,
   connectingSelector,
   disconnectInfoSelector,
   infoSelector,
+  isOwnUserOwnerSelector,
   ownUserRolesSelector,
   ownVoiceUserSelector,
   publicServerSettingsSelector,
@@ -31,16 +33,15 @@ export const useOwnUserRoles = () => useSelector(ownUserRolesSelector);
 
 export const useInfo = () => useSelector(infoSelector);
 
+export const useIsOwnUserOwner = () => useSelector(isOwnUserOwnerSelector);
+
 export const useCan = () => {
   const ownUserRoles = useOwnUserRoles();
+  const isOwner = useIsOwnUserOwner();
 
   const can = useCallback(
     (permission: Permission | Permission[]) => {
-      const hasOwnerRole = ownUserRoles.find(
-        (role) => role.id === OWNER_ROLE_ID
-      );
-
-      if (hasOwnerRole) return true;
+      if (isOwner) return true;
 
       const permissionsToCheck = Array.isArray(permission)
         ? permission
@@ -56,7 +57,23 @@ export const useCan = () => {
 
       return false;
     },
-    [ownUserRoles]
+    [ownUserRoles, isOwner]
+  );
+
+  return can;
+};
+
+export const useChannelCan = (channelId: number) => {
+  const ownUserRoles = useChannelPermissionsById(channelId);
+  const isOwner = useIsOwnUserOwner();
+
+  const can = useCallback(
+    (permission: ChannelPermission) => {
+      if (isOwner) return true;
+
+      return ownUserRoles[permission] === true;
+    },
+    [ownUserRoles, isOwner]
   );
 
   return can;

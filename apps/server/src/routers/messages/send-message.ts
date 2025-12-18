@@ -1,4 +1,5 @@
 import {
+  ChannelPermission,
   Permission,
   ServerEvents,
   type TFile,
@@ -22,7 +23,13 @@ const sendMessageRoute = protectedProcedure
       .required()
   )
   .mutation(async ({ input, ctx }) => {
-    await ctx.needsPermission(Permission.SEND_MESSAGES);
+    await Promise.all([
+      ctx.needsPermission(Permission.SEND_MESSAGES),
+      ctx.needsChannelPermission(
+        input.channelId,
+        ChannelPermission.SEND_MESSAGES
+      )
+    ]);
 
     const message = await db
       .insert(messages)

@@ -20,11 +20,40 @@ CREATE TABLE `categories` (
 );
 --> statement-breakpoint
 CREATE INDEX `categories_position_idx` ON `categories` (`position`);--> statement-breakpoint
+CREATE TABLE `channel_role_permissions` (
+	`channelId` integer NOT NULL,
+	`roleId` integer NOT NULL,
+	`permission` text NOT NULL,
+	`allow` integer NOT NULL,
+	`createdAt` integer NOT NULL,
+	`updatedAt` integer,
+	PRIMARY KEY(`channelId`, `roleId`, `permission`),
+	FOREIGN KEY (`channelId`) REFERENCES `channels`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`roleId`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `channel_role_permissions_channel_idx` ON `channel_role_permissions` (`channelId`);--> statement-breakpoint
+CREATE INDEX `channel_role_permissions_role_idx` ON `channel_role_permissions` (`roleId`);--> statement-breakpoint
+CREATE TABLE `channel_user_permissions` (
+	`channelId` integer NOT NULL,
+	`userId` integer NOT NULL,
+	`permission` text NOT NULL,
+	`allow` integer NOT NULL,
+	`createdAt` integer NOT NULL,
+	`updatedAt` integer,
+	PRIMARY KEY(`channelId`, `userId`, `permission`),
+	FOREIGN KEY (`channelId`) REFERENCES `channels`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `channel_user_permissions_channel_idx` ON `channel_user_permissions` (`channelId`);--> statement-breakpoint
+CREATE INDEX `channel_user_permissions_user_idx` ON `channel_user_permissions` (`userId`);--> statement-breakpoint
 CREATE TABLE `channels` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`type` text NOT NULL,
 	`name` text NOT NULL,
 	`topic` text,
+	`private` integer DEFAULT false NOT NULL,
 	`position` integer NOT NULL,
 	`categoryId` integer,
 	`createdAt` integer NOT NULL,
@@ -194,6 +223,17 @@ CREATE TABLE `settings` (
 );
 --> statement-breakpoint
 CREATE INDEX `settings_server_idx` ON `settings` (`server_id`);--> statement-breakpoint
+CREATE TABLE `user_roles` (
+	`userId` integer NOT NULL,
+	`roleId` integer NOT NULL,
+	`createdAt` integer NOT NULL,
+	PRIMARY KEY(`userId`, `roleId`),
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`roleId`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `user_roles_user_idx` ON `user_roles` (`userId`);--> statement-breakpoint
+CREATE INDEX `user_roles_role_idx` ON `user_roles` (`roleId`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`identity` text NOT NULL,
@@ -201,7 +241,6 @@ CREATE TABLE `users` (
 	`name` text NOT NULL,
 	`avatarId` integer,
 	`bannerId` integer,
-	`roleId` integer NOT NULL,
 	`bio` text,
 	`banned` integer DEFAULT false NOT NULL,
 	`banReason` text,
@@ -211,10 +250,8 @@ CREATE TABLE `users` (
 	`createdAt` integer NOT NULL,
 	`updatedAt` integer,
 	FOREIGN KEY (`avatarId`) REFERENCES `files`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`bannerId`) REFERENCES `files`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`roleId`) REFERENCES `roles`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`bannerId`) REFERENCES `files`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `users_identity_unique` ON `users` (`identity`);--> statement-breakpoint
-CREATE UNIQUE INDEX `users_identity_idx` ON `users` (`identity`);--> statement-breakpoint
-CREATE INDEX `users_role_idx` ON `users` (`roleId`);
+CREATE UNIQUE INDEX `users_identity_idx` ON `users` (`identity`);

@@ -35,8 +35,6 @@ type TAssignRoleDialogProps = TDialogBaseProps & {
 
 const AssignRoleDialog = memo(
   ({ isOpen, close, user, refetch }: TAssignRoleDialogProps) => {
-    console.log('AssignRoleDialog render', { isOpen, user });
-
     const ownUserId = useOwnUserId();
     const roles = useRoles();
     const [selectedRoleId, setSelectedRoleId] = useState<number>(0);

@@ -9,6 +9,8 @@ import {
   StorageOverflowAction,
   type TCategory,
   type TChannel,
+  type TChannelRolePermission,
+  type TChannelUserPermission,
   type TDiskMetrics,
   type TFile,
   type TJoinedEmoji,
@@ -111,7 +113,8 @@ export const useAdminChannelGeneral = (channelId: number) => {
       await trpc.channels.update.mutate({
         channelId,
         name: channel?.name ?? '',
-        topic: channel?.topic ?? null
+        topic: channel?.topic ?? null,
+        private: channel?.private ?? false
       });
 
       toast.success('Channel updated');
@@ -122,7 +125,7 @@ export const useAdminChannelGeneral = (channelId: number) => {
   }, [channel, channelId]);
 
   const onChange = useCallback(
-    (field: keyof TChannel, value: string | null) => {
+    (field: keyof TChannel, value: string | null | boolean) => {
       if (!channel) return;
       setChannel((c) => (c ? { ...c, [field]: value } : c));
       setErrors((e) => ({ ...e, [field]: undefined }));
@@ -378,6 +381,39 @@ export const useAdminUsers = () => {
   return {
     users,
     refetch: fetchUsers,
+    loading
+  };
+};
+
+export const useAdminChannelPermissions = (channelId: number) => {
+  const [loading, setLoading] = useState(true);
+  const [rolePermissions, setRolePermissions] = useState<
+    TChannelRolePermission[]
+  >([]);
+  const [userPermissions, setUserPermissions] = useState<
+    TChannelUserPermission[]
+  >([]);
+
+  const fetchPermissions = useCallback(async () => {
+    setLoading(true);
+
+    const trpc = getTRPCClient();
+    const { rolePermissions, userPermissions } =
+      await trpc.channels.getPermissions.mutate({ channelId });
+
+    setRolePermissions(rolePermissions);
+    setUserPermissions(userPermissions);
+    setLoading(false);
+  }, [channelId]);
+
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
+
+  return {
+    rolePermissions,
+    userPermissions,
+    refetch: fetchPermissions,
     loading
   };
 };

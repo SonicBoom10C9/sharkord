@@ -65,6 +65,7 @@ const channels = sqliteTable(
     type: text('type').notNull(),
     name: text('name').notNull(),
     topic: text('topic'),
+    private: integer('private', { mode: 'boolean' }).notNull().default(false),
     position: integer('position').notNull(),
     categoryId: integer('categoryId').references(() => categories.id),
     createdAt: integer('createdAt').notNull(),
@@ -327,10 +328,54 @@ const activityLog = sqliteTable(
   })
 );
 
+const channelRolePermissions = sqliteTable(
+  'channel_role_permissions',
+  {
+    channelId: integer('channelId')
+      .notNull()
+      .references(() => channels.id, { onDelete: 'cascade' }),
+    roleId: integer('roleId')
+      .notNull()
+      .references(() => roles.id, { onDelete: 'cascade' }),
+    permission: text('permission').notNull(),
+    allow: integer('allow', { mode: 'boolean' }).notNull(),
+    createdAt: integer('createdAt').notNull(),
+    updatedAt: integer('updatedAt')
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.channelId, t.roleId, t.permission] }),
+    channelIdx: index('channel_role_permissions_channel_idx').on(t.channelId),
+    roleIdx: index('channel_role_permissions_role_idx').on(t.roleId)
+  })
+);
+
+const channelUserPermissions = sqliteTable(
+  'channel_user_permissions',
+  {
+    channelId: integer('channelId')
+      .notNull()
+      .references(() => channels.id, { onDelete: 'cascade' }),
+    userId: integer('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    permission: text('permission').notNull(),
+    allow: integer('allow', { mode: 'boolean' }).notNull(),
+    createdAt: integer('createdAt').notNull(),
+    updatedAt: integer('updatedAt')
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.channelId, t.userId, t.permission] }),
+    channelIdx: index('channel_user_permissions_channel_idx').on(t.channelId),
+    userIdx: index('channel_user_permissions_user_idx').on(t.userId)
+  })
+);
+
 export {
   activityLog,
   categories,
+  channelRolePermissions,
   channels,
+  channelUserPermissions,
   emojis,
   files,
   invites,

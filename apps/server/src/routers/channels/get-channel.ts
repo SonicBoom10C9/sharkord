@@ -1,9 +1,9 @@
 import { Permission } from '@sharkord/shared';
-import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
 import { channels } from '../../db/schema';
+import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const getChannelRoute = protectedProcedure
@@ -21,11 +21,10 @@ const getChannelRoute = protectedProcedure
       .where(eq(channels.id, input.channelId))
       .get();
 
-    if (!channel) {
-      throw new TRPCError({
-        code: 'NOT_FOUND'
-      });
-    }
+    invariant(channel, {
+      code: 'NOT_FOUND',
+      message: 'Channel not found'
+    });
 
     return channel;
   });

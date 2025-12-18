@@ -34,3 +34,12 @@ export const isCurrentVoiceChannelSelectedSelector = createSelector(
     currentVoiceChannelId !== undefined &&
     selectedChannelId === currentVoiceChannelId
 );
+
+export const channelPermissionsSelector = (state: IRootState) =>
+  state.server.channelPermissions;
+
+export const channelPermissionsByIdSelector = createSelector(
+  [channelPermissionsSelector, (_, channelId: number) => channelId],
+  (channelPermissions, channelId) =>
+    channelPermissions[channelId]?.permissions || {}
+);

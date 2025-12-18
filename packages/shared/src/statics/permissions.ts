@@ -7,18 +7,16 @@ export enum Permission {
   ENABLE_WEBCAM = "ENABLE_WEBCAM",
   // ADMIN PERMISSIONS
   MANAGE_CHANNELS = "MANAGE_CHANNELS",
+  MANAGE_CHANNEL_PERMISSIONS = "MANAGE_CHANNEL_PERMISSIONS",
   MANAGE_CATEGORIES = "MANAGE_CATEGORIES",
   MANAGE_ROLES = "MANAGE_ROLES",
   MANAGE_EMOJIS = "MANAGE_EMOJIS",
-  MANAGE_NOTIFICATION_SOUNDS = "MANAGE_NOTIFICATION_SOUNDS",
-  MANAGE_SERVER = "MANAGE_SERVER",
+  MANAGE_SETTINGS = "MANAGE_SETTINGS",
   MANAGE_USERS = "MANAGE_USERS",
   MANAGE_FILES = "MANAGE_FILES",
   MANAGE_MESSAGES = "MANAGE_MESSAGES",
   MANAGE_STORAGE = "MANAGE_STORAGE",
   MANAGE_INVITES = "MANAGE_INVITES",
-  VIEW_AUDIT_LOG = "VIEW_AUDIT_LOG",
-  VIEW_SERVER_STATS = "VIEW_SERVER_STATS",
 }
 
 export const permissionLabels: Record<Permission, string> = {
@@ -29,18 +27,16 @@ export const permissionLabels: Record<Permission, string> = {
   [Permission.SHARE_SCREEN]: "Share screen",
   [Permission.ENABLE_WEBCAM]: "Enable webcam",
   [Permission.MANAGE_CHANNELS]: "Manage channels",
+  [Permission.MANAGE_CHANNEL_PERMISSIONS]: "Manage channel permissions",
   [Permission.MANAGE_CATEGORIES]: "Manage categories",
   [Permission.MANAGE_ROLES]: "Manage roles",
   [Permission.MANAGE_EMOJIS]: "Manage emojis",
-  [Permission.MANAGE_NOTIFICATION_SOUNDS]: "Manage sounds",
-  [Permission.MANAGE_SERVER]: "Manage server",
+  [Permission.MANAGE_SETTINGS]: "Manage server settings",
   [Permission.MANAGE_USERS]: "Manage users",
   [Permission.MANAGE_FILES]: "Manage files",
   [Permission.MANAGE_MESSAGES]: "Manage messages",
   [Permission.MANAGE_STORAGE]: "Manage storage",
   [Permission.MANAGE_INVITES]: "Manage invites",
-  [Permission.VIEW_AUDIT_LOG]: "View audit log",
-  [Permission.VIEW_SERVER_STATS]: "View server stats",
 };
 
 export const permissionDescriptions: Record<Permission, string> = {
@@ -54,15 +50,15 @@ export const permissionDescriptions: Record<Permission, string> = {
   [Permission.ENABLE_WEBCAM]: "Grants the ability to enable the webcam.",
   [Permission.MANAGE_CHANNELS]:
     "Grants the ability to create, update, and delete channels.",
+  [Permission.MANAGE_CHANNEL_PERMISSIONS]:
+    "Grants the ability to manage channel-specific permissions for roles and users.",
   [Permission.MANAGE_CATEGORIES]:
     "Grants the ability to create, update, and delete categories.",
   [Permission.MANAGE_ROLES]:
     "Grants the ability to create, update, and delete roles.",
   [Permission.MANAGE_EMOJIS]:
     "Grants the ability to create, update, and delete emojis.",
-  [Permission.MANAGE_NOTIFICATION_SOUNDS]:
-    "Grants the ability to manage sounds.",
-  [Permission.MANAGE_SERVER]: "Grants the ability to manage the server.",
+  [Permission.MANAGE_SETTINGS]: "Grants the ability to manage server settings.",
   [Permission.MANAGE_USERS]: "Grants the ability to manage users.",
   [Permission.MANAGE_FILES]: "Grants the ability to manage files.",
   [Permission.MANAGE_MESSAGES]:
@@ -71,9 +67,6 @@ export const permissionDescriptions: Record<Permission, string> = {
     "Grants the ability to manage storage, such as enabling or disabling uploads.",
   [Permission.MANAGE_INVITES]:
     "Grants the ability to create, edit, and delete server invites.",
-  [Permission.VIEW_AUDIT_LOG]: "Grants the ability to view the audit log.",
-  [Permission.VIEW_SERVER_STATS]:
-    "Grants the ability to view server stats, such as CPU and RAM usage.",
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = [
@@ -90,3 +83,34 @@ export enum UploadHeaders {
   CONTENT_LENGTH = "content-length",
   TOKEN = "x-token",
 }
+
+export enum ChannelPermission {
+  VIEW_CHANNEL = "VIEW_CHANNEL",
+  SEND_MESSAGES = "SEND_MESSAGES",
+  UPLOAD_FILES = "UPLOAD_FILES",
+  JOIN = "JOIN",
+  SPEAK = "SPEAK",
+  SHARE_SCREEN = "SHARE_SCREEN",
+  WEBCAM = "WEBCAM",
+}
+
+export const channelPermissionLabels: Record<ChannelPermission, string> = {
+  [ChannelPermission.VIEW_CHANNEL]: "View Channel",
+  [ChannelPermission.SEND_MESSAGES]: "Send Messages",
+  [ChannelPermission.UPLOAD_FILES]: "Upload Files",
+  [ChannelPermission.JOIN]: "Join Channel",
+  [ChannelPermission.SPEAK]: "Speak",
+  [ChannelPermission.SHARE_SCREEN]: "Share Screen",
+  [ChannelPermission.WEBCAM]: "Enable Webcam",
+};
+
+export const channelPermissionDescriptions: Record<ChannelPermission, string> =
+  {
+    [ChannelPermission.VIEW_CHANNEL]: "Allows the user to view the channel.",
+    [ChannelPermission.SEND_MESSAGES]: "Allows the user to send messages.",
+    [ChannelPermission.UPLOAD_FILES]: "Allows the user to upload files.",
+    [ChannelPermission.JOIN]: "Allows the user to join the channel.",
+    [ChannelPermission.SPEAK]: "Allows the user to speak in voice channels.",
+    [ChannelPermission.SHARE_SCREEN]: "Allows the user to share their screen.",
+    [ChannelPermission.WEBCAM]: "Allows the user to enable their webcam.",
+  };

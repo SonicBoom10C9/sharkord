@@ -1,0 +1,260 @@
+import {
+  ChannelPermission,
+  OWNER_ROLE_ID,
+  type TChannel,
+  type TChannelUserPermissionsMap
+} from '@sharkord/shared';
+import { and, eq, inArray } from 'drizzle-orm';
+import { db } from '..';
+import {
+  channelRolePermissions,
+  channels,
+  channelUserPermissions
+} from '../schema';
+import { getUserRoleIds } from './roles';
+
+const getPermissions = async (
+  userId: number,
+  roleIds: number[],
+  permission: ChannelPermission,
+  channelId?: number
+) => {
+  const userPermissionsQuery = db
+    .select({
+      channelId: channelUserPermissions.channelId,
+      allow: channelUserPermissions.allow
+    })
+    .from(channelUserPermissions)
+    .where(
+      and(
+        eq(channelUserPermissions.userId, userId),
+        eq(channelUserPermissions.permission, permission),
+        channelId ? eq(channelUserPermissions.channelId, channelId) : undefined
+      )
+    );
+
+  let rolePermissionsQuery = null;
+
+  if (roleIds.length > 0) {
+    rolePermissionsQuery = db
+      .select({
+        channelId: channelRolePermissions.channelId,
+        allow: channelRolePermissions.allow
+      })
+      .from(channelRolePermissions)
+      .where(
+        and(
+          inArray(channelRolePermissions.roleId, roleIds),
+          eq(channelRolePermissions.permission, permission),
+          channelId
+            ? eq(channelRolePermissions.channelId, channelId)
+            : undefined
+        )
+      );
+  }
+
+  const [userPermissions, rolePermissions] = await Promise.all([
+    userPermissionsQuery,
+    rolePermissionsQuery || Promise.resolve([])
+  ]);
+
+  const userPermissionMap = new Map(
+    userPermissions.map((p) => [p.channelId, p.allow])
+  );
+
+  const rolePermissionMap = new Map<number, boolean>();
+
+  for (const perm of rolePermissions) {
+    const existing = rolePermissionMap.get(perm.channelId);
+
+    rolePermissionMap.set(perm.channelId, existing || perm.allow);
+  }
+
+  return { userPermissionMap, rolePermissionMap };
+};
+
+const channelUserCan = async (
+  channelId: number,
+  userId: number,
+  permission: ChannelPermission
+): Promise<boolean> => {
+  const roleIds = await getUserRoleIds(userId);
+
+  if (roleIds.includes(OWNER_ROLE_ID)) {
+    return true;
+  }
+
+  const [channel] = await db
+    .select()
+    .from(channels)
+    .where(eq(channels.id, channelId))
+    .limit(1);
+
+  if (!channel) {
+    return false;
+  }
+
+  if (!channel.private) {
+    return true;
+  }
+
+  const { userPermissionMap, rolePermissionMap } = await getPermissions(
+    userId,
+    roleIds,
+    permission,
+    channelId
+  );
+
+  const userPerm = userPermissionMap.get(channelId);
+
+  if (userPerm !== undefined) {
+    return userPerm;
+  }
+
+  const rolePerm = rolePermissionMap.get(channelId);
+
+  if (rolePerm !== undefined) {
+    return rolePerm;
+  }
+
+  return false;
+};
+
+const getChannelsForUser = async (userId: number): Promise<TChannel[]> => {
+  const roleIds = await getUserRoleIds(userId);
+
+  if (roleIds.includes(OWNER_ROLE_ID)) {
+    return await db.select().from(channels);
+  }
+
+  const allChannels = await db.select().from(channels);
+
+  const { userPermissionMap, rolePermissionMap } = await getPermissions(
+    userId,
+    roleIds,
+    ChannelPermission.VIEW_CHANNEL
+  );
+
+  const accessibleChannels = allChannels.filter((channel) => {
+    if (!channel.private) {
+      return true;
+    }
+
+    const userPerm = userPermissionMap.get(channel.id);
+
+    if (userPerm !== undefined) {
+      return userPerm;
+    }
+
+    const rolePerm = rolePermissionMap.get(channel.id);
+
+    return rolePerm;
+  });
+
+  return accessibleChannels;
+};
+
+const getChannelUserPermissions = async (
+  userId: number
+): Promise<TChannelUserPermissionsMap> => {
+  const roleIds = await getUserRoleIds(userId);
+  const allChannels = await db.select().from(channels);
+
+  const userPermissions = await db
+    .select({
+      channelId: channelUserPermissions.channelId,
+      permission: channelUserPermissions.permission,
+      allow: channelUserPermissions.allow
+    })
+    .from(channelUserPermissions)
+    .where(eq(channelUserPermissions.userId, userId));
+
+  let rolePermissions: typeof userPermissions = [];
+
+  if (roleIds.length > 0) {
+    rolePermissions = await db
+      .select({
+        channelId: channelRolePermissions.channelId,
+        permission: channelRolePermissions.permission,
+        allow: channelRolePermissions.allow
+      })
+      .from(channelRolePermissions)
+      .where(inArray(channelRolePermissions.roleId, roleIds));
+  }
+
+  const userPermMap = new Map<number, Map<ChannelPermission, boolean>>();
+
+  for (const perm of userPermissions) {
+    if (!userPermMap.has(perm.channelId)) {
+      userPermMap.set(perm.channelId, new Map());
+    }
+
+    userPermMap
+      .get(perm.channelId)!
+      .set(perm.permission as ChannelPermission, perm.allow);
+  }
+
+  const rolePermMap = new Map<number, Map<ChannelPermission, boolean>>();
+
+  for (const perm of rolePermissions) {
+    if (!rolePermMap.has(perm.channelId)) {
+      rolePermMap.set(perm.channelId, new Map());
+    }
+
+    const channelMap = rolePermMap.get(perm.channelId)!;
+    const existing = channelMap.get(perm.permission as ChannelPermission);
+
+    channelMap.set(
+      perm.permission as ChannelPermission,
+      existing || perm.allow
+    );
+  }
+
+  const allPermissionTypes = Object.values(ChannelPermission);
+
+  const channelPermissions: Record<
+    number,
+    { channelId: number; permissions: Record<ChannelPermission, boolean> }
+  > = {};
+
+  for (const channel of allChannels) {
+    const permissions: Record<string, boolean> = {};
+
+    for (const permissionType of allPermissionTypes) {
+      const userPerm = userPermMap.get(channel.id)?.get(permissionType);
+
+      if (userPerm !== undefined) {
+        permissions[permissionType] = userPerm;
+
+        continue;
+      }
+
+      const rolePerm = rolePermMap.get(channel.id)?.get(permissionType);
+
+      if (rolePerm !== undefined) {
+        permissions[permissionType] = rolePerm;
+
+        continue;
+      }
+
+      if (
+        !channel.private &&
+        permissionType === ChannelPermission.VIEW_CHANNEL
+      ) {
+        permissions[permissionType] = true;
+        continue;
+      }
+
+      permissions[permissionType] = false;
+    }
+
+    channelPermissions[channel.id] = {
+      channelId: channel.id,
+      permissions: permissions as Record<ChannelPermission, boolean>
+    };
+  }
+
+  return channelPermissions;
+};
+
+export { channelUserCan, getChannelsForUser, getChannelUserPermissions };

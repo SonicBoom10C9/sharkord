@@ -38,14 +38,14 @@ const LeftSidebar = memo(() => {
             <DropdownMenuContent>
               <DropdownMenuLabel>Server</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Protect permission={Permission.MANAGE_SERVER}>
+              <Protect permission={Permission.MANAGE_CATEGORIES}>
                 <DropdownMenuItem
                   onClick={() => openDialog(Dialog.CREATE_CATEGORY)}
                 >
                   Add Category
                 </DropdownMenuItem>
               </Protect>
-              <Protect permission={Permission.MANAGE_SERVER}>
+              <Protect permission={Permission.MANAGE_SETTINGS}>
                 <DropdownMenuItem
                   onClick={() => openServerScreen(ServerScreen.SERVER_SETTINGS)}
                 >

@@ -1,4 +1,4 @@
-import { type TFile, type TSettings, type TUser } from ".";
+import { ChannelPermission, type TFile, type TSettings, type TUser } from ".";
 
 export enum ChannelType {
   TEXT = "TEXT",
@@ -105,3 +105,8 @@ export type TIpInfo = {
   postal: string;
   timezone: string;
 };
+
+export type TChannelUserPermissionsMap = Record<
+  number,
+  { channelId: number; permissions: Record<ChannelPermission, boolean> }
+>;

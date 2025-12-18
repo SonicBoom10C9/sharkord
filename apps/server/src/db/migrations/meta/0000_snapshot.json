@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "20546765-2193-4737-888a-51cb1f66d7c1",
+  "id": "d7006bff-3e23-43db-91de-3e3a423a9ba4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "activity_log": {
@@ -145,6 +145,212 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "channel_role_permissions": {
+      "name": "channel_role_permissions",
+      "columns": {
+        "channelId": {
+          "name": "channelId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "roleId": {
+          "name": "roleId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "permission": {
+          "name": "permission",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allow": {
+          "name": "allow",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "channel_role_permissions_channel_idx": {
+          "name": "channel_role_permissions_channel_idx",
+          "columns": [
+            "channelId"
+          ],
+          "isUnique": false
+        },
+        "channel_role_permissions_role_idx": {
+          "name": "channel_role_permissions_role_idx",
+          "columns": [
+            "roleId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "channel_role_permissions_channelId_channels_id_fk": {
+          "name": "channel_role_permissions_channelId_channels_id_fk",
+          "tableFrom": "channel_role_permissions",
+          "tableTo": "channels",
+          "columnsFrom": [
+            "channelId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "channel_role_permissions_roleId_roles_id_fk": {
+          "name": "channel_role_permissions_roleId_roles_id_fk",
+          "tableFrom": "channel_role_permissions",
+          "tableTo": "roles",
+          "columnsFrom": [
+            "roleId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "channel_role_permissions_channelId_roleId_permission_pk": {
+          "columns": [
+            "channelId",
+            "roleId",
+            "permission"
+          ],
+          "name": "channel_role_permissions_channelId_roleId_permission_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "channel_user_permissions": {
+      "name": "channel_user_permissions",
+      "columns": {
+        "channelId": {
+          "name": "channelId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "permission": {
+          "name": "permission",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allow": {
+          "name": "allow",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "channel_user_permissions_channel_idx": {
+          "name": "channel_user_permissions_channel_idx",
+          "columns": [
+            "channelId"
+          ],
+          "isUnique": false
+        },
+        "channel_user_permissions_user_idx": {
+          "name": "channel_user_permissions_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "channel_user_permissions_channelId_channels_id_fk": {
+          "name": "channel_user_permissions_channelId_channels_id_fk",
+          "tableFrom": "channel_user_permissions",
+          "tableTo": "channels",
+          "columnsFrom": [
+            "channelId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "channel_user_permissions_userId_users_id_fk": {
+          "name": "channel_user_permissions_userId_users_id_fk",
+          "tableFrom": "channel_user_permissions",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "channel_user_permissions_channelId_userId_permission_pk": {
+          "columns": [
+            "channelId",
+            "userId",
+            "permission"
+          ],
+          "name": "channel_user_permissions_channelId_userId_permission_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "channels": {
       "name": "channels",
       "columns": {
@@ -175,6 +381,14 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "private": {
+          "name": "private",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "position": {
           "name": "position",
@@ -1354,6 +1568,87 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "user_roles": {
+      "name": "user_roles",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "roleId": {
+          "name": "roleId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "user_roles_user_idx": {
+          "name": "user_roles_user_idx",
+          "columns": [
+            "userId"
+          ],
+          "isUnique": false
+        },
+        "user_roles_role_idx": {
+          "name": "user_roles_role_idx",
+          "columns": [
+            "roleId"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "user_roles_userId_users_id_fk": {
+          "name": "user_roles_userId_users_id_fk",
+          "tableFrom": "user_roles",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_roles_roleId_roles_id_fk": {
+          "name": "user_roles_roleId_roles_id_fk",
+          "tableFrom": "user_roles",
+          "tableTo": "roles",
+          "columnsFrom": [
+            "roleId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_roles_userId_roleId_pk": {
+          "columns": [
+            "userId",
+            "roleId"
+          ],
+          "name": "user_roles_userId_roleId_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "users": {
       "name": "users",
       "columns": {
@@ -1397,13 +1692,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
-        },
-        "roleId": {
-          "name": "roleId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         },
         "bio": {
@@ -1478,13 +1766,6 @@
             "identity"
           ],
           "isUnique": true
-        },
-        "users_role_idx": {
-          "name": "users_role_idx",
-          "columns": [
-            "roleId"
-          ],
-          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -1507,19 +1788,6 @@
           "tableTo": "files",
           "columnsFrom": [
             "bannerId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "users_roleId_roles_id_fk": {
-          "name": "users_roleId_roles_id_fk",
-          "tableFrom": "users",
-          "tableTo": "roles",
-          "columnsFrom": [
-            "roleId"
           ],
           "columnsTo": [
             "id"

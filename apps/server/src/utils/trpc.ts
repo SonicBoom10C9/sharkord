@@ -1,4 +1,9 @@
-import { UserStatus, type Permission, type TUser } from '@sharkord/shared';
+import {
+  ChannelPermission,
+  UserStatus,
+  type Permission,
+  type TUser
+} from '@sharkord/shared';
 import { initTRPC, TRPCError } from '@trpc/server';
 import chalk from 'chalk';
 import type WebSocket from 'ws';
@@ -20,6 +25,14 @@ export type Context = {
   ) => Promise<boolean>;
   needsPermission: (
     targetPermission: Permission | Permission[]
+  ) => Promise<void>;
+  hasChannelPermission: (
+    channelId: number,
+    targetPermission: ChannelPermission
+  ) => Promise<boolean>;
+  needsChannelPermission: (
+    channelId: number,
+    targetPermission: ChannelPermission
   ) => Promise<void>;
   getOwnWs: () => WebSocket | undefined;
   getStatusById: (userId: number) => UserStatus;
