@@ -212,9 +212,6 @@ const getAllChannelUserPermissions = async (
     );
   }
 
-  console.log('User Permission Map:', userPermMap);
-  console.log('Role Permission Map:', rolePermMap);
-
   const allPermissionTypes = Object.values(ChannelPermission);
 
   const channelPermissions: Record<

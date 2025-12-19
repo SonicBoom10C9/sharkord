@@ -37,8 +37,6 @@ const updatePermissionsRoute = protectedProcedure
   .mutation(async ({ input, ctx }) => {
     await ctx.needsPermission(Permission.MANAGE_CHANNELS);
 
-    console.log('Updating permissions with input:', input);
-
     const permissions = input.isCreate ? [] : input.permissions;
 
     await db.transaction(async (tx) => {
