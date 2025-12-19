@@ -1,7 +1,15 @@
-import { ServerEvents } from '@sharkord/shared';
+import {
+  ChannelPermission,
+  ServerEvents,
+  type TChannelUserPermissionsMap
+} from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import { db } from '.';
 import { pubsub } from '../utils/pubsub';
+import {
+  getAffectedUserIdsForChannel,
+  getAllChannelUserPermissions
+} from './queries/channels';
 import { getEmojiById } from './queries/emojis';
 import { getMessage } from './queries/messages';
 import { getRole } from './queries/roles';
@@ -12,7 +20,7 @@ import { categories, channels } from './schema';
 const publishMessage = async (
   messageId: number | undefined,
   channelId: number | undefined,
-  type: 'update' | 'delete'
+  type: 'create' | 'update' | 'delete'
 ) => {
   if (!messageId || !channelId) return;
 
@@ -29,7 +37,14 @@ const publishMessage = async (
 
   if (!message) return;
 
-  pubsub.publish(ServerEvents.MESSAGE_UPDATE, message);
+  const targetEvent =
+    type === 'create' ? ServerEvents.NEW_MESSAGE : ServerEvents.MESSAGE_UPDATE;
+
+  const affectedUserIds = await getAffectedUserIdsForChannel(channelId, {
+    permission: ChannelPermission.VIEW_CHANNEL
+  });
+
+  pubsub.publishFor(affectedUserIds, targetEvent, message);
 };
 
 const publishEmoji = async (
@@ -155,9 +170,33 @@ const publishCategory = async (
   pubsub.publish(targetEvent, category);
 };
 
+const publishChannelPermissions = async (affectedUserIds: number[]) => {
+  const permissionsMap = new Map<number, TChannelUserPermissionsMap>();
+  const promises = affectedUserIds.map(async (userId) => {
+    const updatedPermissions = await getAllChannelUserPermissions(userId);
+
+    permissionsMap.set(userId, updatedPermissions);
+  });
+
+  await Promise.all(promises);
+
+  for (const userId of affectedUserIds) {
+    const updatedPermissions = permissionsMap.get(userId);
+
+    if (!updatedPermissions) continue;
+
+    pubsub.publishFor(
+      userId,
+      ServerEvents.CHANNEL_PERMISSIONS_UPDATE,
+      updatedPermissions
+    );
+  }
+};
+
 export {
   publishCategory,
   publishChannel,
+  publishChannelPermissions,
   publishEmoji,
   publishMessage,
   publishRole,

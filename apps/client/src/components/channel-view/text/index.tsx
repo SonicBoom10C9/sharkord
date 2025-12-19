@@ -1,13 +1,13 @@
 import { TiptapInput } from '@/components/tiptap-input';
 import Spinner from '@/components/ui/spinner';
-import { useCan } from '@/features/server/hooks';
+import { useCan, useChannelCan } from '@/features/server/hooks';
 import { useMessages } from '@/features/server/messages/hooks';
 import { playSound } from '@/features/server/sounds/actions';
 import { SoundType } from '@/features/server/types';
 import { getTrpcError } from '@/helpers/parse-trpc-errors';
 import { useUploadFiles } from '@/hooks/use-upload-files';
 import { getTRPCClient } from '@/lib/trpc';
-import { Permission, TYPING_MS } from '@sharkord/shared';
+import { ChannelPermission, Permission, TYPING_MS } from '@sharkord/shared';
 import { filesize } from 'filesize';
 import { throttle } from 'lodash-es';
 import { Send } from 'lucide-react';
@@ -25,8 +25,6 @@ type TChannelProps = {
 };
 
 const TextChannel = memo(({ channelId }: TChannelProps) => {
-  const { files, removeFile, clearFiles, uploading, uploadingSize } =
-    useUploadFiles();
   const { messages, hasMore, loadMore, loading, groupedMessages } =
     useMessages(channelId);
   const [newMessage, setNewMessage] = useState('');
@@ -37,6 +35,16 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
     loadMore
   });
   const can = useCan();
+  const channelCan = useChannelCan(channelId);
+  const canSendMessages = useMemo(() => {
+    return (
+      can(Permission.SEND_MESSAGES) &&
+      channelCan(ChannelPermission.SEND_MESSAGES)
+    );
+  }, [can, channelCan]);
+
+  const { files, removeFile, clearFiles, uploading, uploadingSize } =
+    useUploadFiles(!canSendMessages);
 
   const sendTypingSignal = useMemo(
     () =>
@@ -53,7 +61,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
   );
 
   const onSendMessage = useCallback(async () => {
-    if (!newMessage.trim() && !files.length) return;
+    if ((!newMessage.trim() && !files.length) || !canSendMessages) return;
 
     sendTypingSignal.cancel();
 
@@ -74,7 +82,14 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
 
     setNewMessage('');
     clearFiles();
-  }, [newMessage, channelId, files, clearFiles, sendTypingSignal]);
+  }, [
+    newMessage,
+    channelId,
+    files,
+    clearFiles,
+    sendTypingSignal,
+    canSendMessages
+  ]);
 
   const onRemoveFileClick = useCallback(
     async (fileId: string) => {
@@ -91,7 +106,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
     [removeFile]
   );
 
-  if (loading) {
+  if (loading || !channelCan(ChannelPermission.VIEW_CHANNEL)) {
     return <TextSkeleton />;
   }
 
@@ -138,16 +153,14 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
             onChange={setNewMessage}
             onSubmit={onSendMessage}
             onTyping={sendTypingSignal}
-            disabled={!can(Permission.SEND_MESSAGES)}
+            disabled={uploading || !canSendMessages}
           />
           <Button
             size="icon"
             variant="ghost"
             className="h-8 w-8"
             onClick={onSendMessage}
-            disabled={
-              uploading || !newMessage.trim() || !can(Permission.SEND_MESSAGES)
-            }
+            disabled={uploading || !newMessage.trim() || !canSendMessages}
           >
             <Send className="h-4 w-4" />
           </Button>

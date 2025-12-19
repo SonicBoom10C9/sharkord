@@ -13,7 +13,8 @@ const updateChannelRoute = protectedProcedure
     z.object({
       channelId: z.number().min(1),
       name: z.string().min(2).max(24),
-      topic: z.string().max(128).nullable()
+      topic: z.string().max(128).nullable(),
+      private: z.boolean()
     })
   )
   .mutation(async ({ ctx, input }) => {
@@ -21,7 +22,8 @@ const updateChannelRoute = protectedProcedure
       .update(channels)
       .set({
         name: input.name,
-        topic: input.topic
+        topic: input.topic,
+        private: input.private
       })
       .where(eq(channels.id, input.channelId))
       .returning()

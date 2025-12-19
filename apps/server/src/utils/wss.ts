@@ -1,5 +1,6 @@
 import {
   ActivityLogType,
+  ChannelPermission,
   OWNER_ROLE_ID,
   Permission,
   ServerEvents,
@@ -20,7 +21,11 @@ import { appRouter } from '../routers';
 import { VoiceRuntime } from '../runtimes/voice';
 // // this needs to be here because of tsc weirdness, check this in the future (when check-types on client it spits server errors)
 // import '../types/websocket';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { getAllChannelUserPermissions } from '../db/queries/channels';
 import { getUserById, getUserByToken } from '../db/queries/users';
+import { channels } from '../db/schema';
 import { getUserRoles } from '../routers/users/get-user-roles';
 import { pubsub } from './pubsub';
 import type { Context } from './trpc';
@@ -75,6 +80,45 @@ const createContext = async ({
     return permissionsSet.has(targetPermission);
   };
 
+  const hasChannelPermission = async (
+    channelId: number,
+    targetPermission: ChannelPermission
+  ) => {
+    const channel = await db
+      .select({
+        private: channels.private
+      })
+      .from(channels)
+      .where(eq(channels.id, channelId))
+      .limit(1)
+      .get();
+
+    if (!channel) return false;
+
+    if (!channel.private) return true;
+
+    const user = await getUserById(decodedUser.id);
+
+    if (!user) return false;
+
+    const roles = await getUserRoles(user.id);
+
+    const hasOwnerRole = roles.some((r) => r.id === OWNER_ROLE_ID);
+
+    if (hasOwnerRole) return true; // owner always has all permissions
+
+    const userChannelPermissions = await getAllChannelUserPermissions(
+      decodedUser.id
+    );
+
+    const channelInfo = userChannelPermissions[channelId];
+
+    if (!channelInfo) return false;
+    if (!channelInfo.permissions[ChannelPermission.VIEW_CHANNEL]) return false;
+
+    return channelInfo.permissions[targetPermission] === true;
+  };
+
   const getOwnWs = () => {
     if (!wss) return undefined;
     return Array.from(wss.clients).find((client) => client.token === token);
@@ -126,6 +170,18 @@ const createContext = async ({
     }
   };
 
+  const needsChannelPermission = async (
+    channelId: number,
+    targetPermission: ChannelPermission
+  ) => {
+    if (!(await hasChannelPermission(channelId, targetPermission))) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Insufficient channel permissions'
+      });
+    }
+  };
+
   const throwValidationError = (field: string, message: string) => {
     throw new TRPCError({
       code: 'BAD_REQUEST',
@@ -152,10 +208,12 @@ const createContext = async ({
     handshakeHash: '',
     currentVoiceChannelId: undefined,
     hasPermission,
+    needsPermission,
+    hasChannelPermission,
+    needsChannelPermission,
     getOwnWs,
     getStatusById,
     setWsUserId,
-    needsPermission,
     getUserWs,
     getConnectionInfo,
     throwValidationError,

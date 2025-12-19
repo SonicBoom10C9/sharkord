@@ -2,6 +2,7 @@ import type { IRootState } from '@/features/store';
 import { useSelector } from 'react-redux';
 import {
   channelByIdSelector,
+  channelPermissionsByIdSelector,
   channelsByCategoryIdSelector,
   channelsSelector,
   currentVoiceChannelIdSelector,
@@ -31,3 +32,8 @@ export const useCurrentVoiceChannelId = () =>
 
 export const useIsCurrentVoiceChannelSelected = () =>
   useSelector(isCurrentVoiceChannelSelectedSelector);
+
+export const useChannelPermissionsById = (channelId: number) =>
+  useSelector((state: IRootState) =>
+    channelPermissionsByIdSelector(state, channelId)
+  );

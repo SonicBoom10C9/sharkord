@@ -16,6 +16,8 @@ import {
   invites,
   activityLog,
   userRoles,
+  channelRolePermissions,
+  channelUserPermissions,
 } from "../../../apps/server/src/db/schema";
 import type { UserStatus } from "./types";
 import type { Permission } from "./statics";
@@ -36,6 +38,12 @@ export type TMessageReaction = InferSelectModel<typeof messageReactions>;
 export type TInvite = InferSelectModel<typeof invites>;
 export type TActivityLog = InferSelectModel<typeof activityLog>;
 export type TUserRole = InferSelectModel<typeof userRoles>;
+export type TChannelRolePermission = InferSelectModel<
+  typeof channelRolePermissions
+>;
+export type TChannelUserPermission = InferSelectModel<
+  typeof channelUserPermissions
+>;
 
 export type TISettings = InferInsertModel<typeof settings>;
 export type TIRole = InferInsertModel<typeof roles>;
@@ -53,6 +61,12 @@ export type TIMessageReaction = InferInsertModel<typeof messageReactions>;
 export type TIInvite = InferInsertModel<typeof invites>;
 export type TIActivityLog = InferInsertModel<typeof activityLog>;
 export type TIUserRole = InferInsertModel<typeof userRoles>;
+export type TIChannelRolePermission = InferInsertModel<
+  typeof channelRolePermissions
+>;
+export type TIChannelUserPermission = InferInsertModel<
+  typeof channelUserPermissions
+>;
 
 export type TStorageSettings = Pick<
   TSettings,

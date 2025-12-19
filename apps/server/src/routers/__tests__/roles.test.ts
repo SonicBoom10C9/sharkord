@@ -235,7 +235,6 @@ describe('roles router', () => {
     const permissions = [
       Permission.SEND_MESSAGES,
       Permission.UPLOAD_FILES,
-      Permission.VIEW_AUDIT_LOG,
       Permission.MANAGE_CHANNELS,
       Permission.MANAGE_ROLES
     ];

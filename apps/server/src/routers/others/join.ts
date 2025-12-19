@@ -7,6 +7,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../../db';
+import { getAllChannelUserPermissions } from '../../db/queries/channels';
 import { getEmojis } from '../../db/queries/emojis';
 import { getRoles } from '../../db/queries/roles';
 import { getSettings } from '../../db/queries/server';
@@ -44,14 +45,21 @@ const joinServerRoute = t.procedure
     ctx.authenticated = true;
     ctx.setWsUserId(ctx.user.id);
 
-    const [allCategories, allChannels, publicUsers, roles, emojis] =
-      await Promise.all([
-        db.select().from(categories),
-        db.select().from(channels),
-        getPublicUsers(true), // return identity to get status of already connected users
-        getRoles(),
-        getEmojis()
-      ]);
+    const [
+      allCategories,
+      channelsForUser,
+      publicUsers,
+      roles,
+      emojis,
+      channelPermissions
+    ] = await Promise.all([
+      db.select().from(categories),
+      db.select().from(channels),
+      getPublicUsers(true), // return identity to get status of already connected users
+      getRoles(),
+      getEmojis(),
+      getAllChannelUserPermissions(ctx.user.id)
+    ]);
 
     const processedPublicUsers = publicUsers.map((u) => ({
       ...u,
@@ -102,7 +110,7 @@ const joinServerRoute = t.procedure
 
     return {
       categories: allCategories,
-      channels: allChannels,
+      channels: channelsForUser,
       users: processedPublicUsers,
       serverId: settings.serverId,
       serverName: settings.name,
@@ -110,7 +118,8 @@ const joinServerRoute = t.procedure
       voiceMap,
       roles,
       emojis,
-      publicSettings
+      publicSettings,
+      channelPermissions
     };
   });
 

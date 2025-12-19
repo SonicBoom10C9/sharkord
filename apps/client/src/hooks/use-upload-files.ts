@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 // TODO: check if it works in all browsers
 
-const useUploadFiles = () => {
+const useUploadFiles = (disabled: boolean = false) => {
   const [files, setFiles] = useState<TTempFile[]>([]);
   const filesRef = useRef<TTempFile[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -30,12 +30,16 @@ const useUploadFiles = () => {
   }, []);
 
   useEffect(() => {
-    if (!settings?.storageUploadEnabled) return;
+    if (!settings?.storageUploadEnabled || disabled) return;
 
     const canUpload = can(Permission.UPLOAD_FILES);
     const uploadEnabled = true;
 
     const handlePaste = async (event: ClipboardEvent) => {
+      if (disabled) {
+        return;
+      }
+
       if (!canUpload) {
         toast.error('You do not have permission to upload files.');
         return;
@@ -75,6 +79,11 @@ const useUploadFiles = () => {
     };
 
     const handleDrop = async (event: DragEvent) => {
+      if (disabled) {
+        event.preventDefault();
+        return;
+      }
+
       if (!canUpload) {
         toast.error('You do not have permission to upload files.');
         return;
@@ -131,7 +140,7 @@ const useUploadFiles = () => {
       document.removeEventListener('dragover', handleDragOver);
       document.removeEventListener('drop', handleDrop);
     };
-  }, [addFiles, can, settings]);
+  }, [addFiles, can, settings, disabled]);
 
   return { files, removeFile, filesRef, clearFiles, uploading, uploadingSize };
 };

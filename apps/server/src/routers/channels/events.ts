@@ -19,4 +19,18 @@ const onChannelUpdateRoute = protectedProcedure.subscription(
   }
 );
 
-export { onChannelCreateRoute, onChannelDeleteRoute, onChannelUpdateRoute };
+const onChannelPermissionsUpdateRoute = protectedProcedure.subscription(
+  async ({ ctx }) => {
+    return ctx.pubsub.subscribeFor(
+      ctx.userId,
+      ServerEvents.CHANNEL_PERMISSIONS_UPDATE
+    );
+  }
+);
+
+export {
+  onChannelCreateRoute,
+  onChannelDeleteRoute,
+  onChannelPermissionsUpdateRoute,
+  onChannelUpdateRoute
+};

@@ -1,4 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
+import { OWNER_ROLE_ID } from '@sharkord/shared';
 import type { IRootState } from '../store';
 import { currentVoiceChannelIdSelector } from './channels/selectors';
 import { typingMapSelector } from './messages/selectors';
@@ -34,11 +35,14 @@ export const infoSelector = (state: IRootState) => state.server.info;
 export const ownUserRolesSelector = createSelector(
   [ownUserSelector, rolesSelector],
   (ownUser, roles) => {
-    console.log('!', { ownUser, roles });
-
     if (!ownUser?.roleIds) return [];
     return roles.filter((role) => ownUser.roleIds.includes(role.id));
   }
+);
+
+export const isOwnUserOwnerSelector = createSelector(
+  [ownUserRolesSelector],
+  (ownUserRoles) => ownUserRoles.some((role) => role.id === OWNER_ROLE_ID)
 );
 
 export const userRolesSelector = createSelector(

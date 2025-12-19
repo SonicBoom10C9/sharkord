@@ -3,6 +3,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type {
   TCategory,
   TChannel,
+  TChannelUserPermissionsMap,
   TJoinedEmoji,
   TJoinedMessage,
   TJoinedPublicUser,
@@ -37,6 +38,7 @@ export interface IServerState {
   voiceMap: TVoiceMap;
   ownVoiceState: TVoiceUserState;
   pinnedCard: TPinnedCard | undefined;
+  channelPermissions: TChannelUserPermissionsMap;
 }
 
 const initialState: IServerState = {
@@ -64,7 +66,8 @@ const initialState: IServerState = {
     webcamEnabled: false,
     sharingScreen: false
   },
-  pinnedCard: undefined
+  pinnedCard: undefined,
+  channelPermissions: {}
 };
 
 export const serverSlice = createSlice({
@@ -111,6 +114,7 @@ export const serverSlice = createSlice({
         emojis: TJoinedEmoji[];
         publicSettings: TPublicServerSettings | undefined;
         voiceMap: TVoiceMap;
+        channelPermissions: TChannelUserPermissionsMap;
       }>
     ) => {
       state.connected = true;
@@ -122,6 +126,8 @@ export const serverSlice = createSlice({
       state.ownUserId = action.payload.ownUserId;
       state.publicSettings = action.payload.publicSettings;
       state.voiceMap = action.payload.voiceMap;
+      state.serverId = action.payload.serverId;
+      state.channelPermissions = action.payload.channelPermissions;
     },
     addMessages: (
       state,
@@ -320,6 +326,12 @@ export const serverSlice = createSlice({
       action: PayloadAction<number | undefined>
     ) => {
       state.currentVoiceChannelId = action.payload;
+    },
+    setChannelPermissions: (
+      state,
+      action: PayloadAction<TChannelUserPermissionsMap>
+    ) => {
+      state.channelPermissions = action.payload;
     },
 
     // EMOJIS ------------------------------------------------------------
