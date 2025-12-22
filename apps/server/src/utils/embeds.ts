@@ -9,7 +9,7 @@ import {
 } from '../helpers/paths';
 import { unzipBlobToDirectory } from '../helpers/zip';
 import { logger } from '../logger';
-import { IS_DEVELOPMENT } from '../utils/env';
+import { IS_DEVELOPMENT, IS_TEST } from '../utils/env';
 
 const findEmbedFile = (fileName: string) => {
   const extension = path.extname(fileName);
@@ -27,7 +27,7 @@ const findEmbedFile = (fileName: string) => {
 const loadEmbeds = async () => {
   logger.debug('Loading embedded files...');
 
-  if (IS_DEVELOPMENT) {
+  if (IS_DEVELOPMENT || IS_TEST) {
     // files are only embedded in production
     logger.debug('Development mode, skipping embedded files extraction');
 

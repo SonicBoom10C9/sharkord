@@ -14,6 +14,8 @@
     "check-types": "tsc --noEmit",
     "magic": "bun --bun run lint:fix && bun --bun run format && bun --bun run check-types",
     "test": "bun test",
+    "test:ci": "bun run ./prepare-tests.ts && bun test",
+    "test:prepare": "bun run ./prepare-tests.ts",
     "test:watch": "bun test --watch"
   },
   "devDependencies": {
