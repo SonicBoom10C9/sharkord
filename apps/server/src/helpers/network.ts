@@ -23,6 +23,7 @@ const getPublicIpFromIpify = async (): Promise<string | undefined> => {
   }
 };
 
+// fallback since it can return ipv6 sometimes
 const getPublicIpFromIfconfig = async (): Promise<string | undefined> => {
   try {
     const response = await fetch('https://ifconfig.me/ip');
@@ -34,11 +35,26 @@ const getPublicIpFromIfconfig = async (): Promise<string | undefined> => {
   }
 };
 
+const getPublicIpFromIcanhazip = async (): Promise<string | undefined> => {
+  try {
+    const response = await fetch('https://ipv4.icanhazip.com');
+    const ip = (await response.text()).trim();
+
+    return ip;
+  } catch {
+    return undefined;
+  }
+};
+
 const getPublicIp = async () => {
-  let ip = await getPublicIpFromIfconfig();
+  let ip = await getPublicIpFromIcanhazip();
 
   if (!ip) {
     ip = await getPublicIpFromIpify();
+  }
+
+  if (!ip) {
+    ip = await getPublicIpFromIfconfig();
   }
 
   return ip;
