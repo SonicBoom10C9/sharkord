@@ -20,13 +20,19 @@ const setDefaultRoleRoute = protectedProcedure
 
     const defaultRole = await getDefaultRole();
 
-    invariant(defaultRole, 'Default role not found');
+    invariant(defaultRole, {
+      code: 'NOT_FOUND',
+      message: 'Default role not found'
+    });
 
     if (input.roleId === defaultRole?.id) return;
 
     const newDefaultRole = await getRole(input.roleId);
 
-    invariant(newDefaultRole, 'Role not found');
+    invariant(newDefaultRole, {
+      code: 'NOT_FOUND',
+      message: 'Role not found'
+    });
 
     await db.transaction(async (tx) => {
       await tx

@@ -25,7 +25,10 @@ const addInviteRoute = protectedProcedure
       .where(eq(invites.code, newCode))
       .get();
 
-    invariant(!existingInvite, 'Invite code should be unique');
+    invariant(!existingInvite, {
+      code: 'CONFLICT',
+      message: 'An invite with this code already exists'
+    });
 
     const invite = await db
       .insert(invites)

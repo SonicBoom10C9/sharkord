@@ -32,7 +32,10 @@ const registerUser = async (
 
   const defaultRole = await getDefaultRole();
 
-  invariant(defaultRole, 'Default role not found');
+  invariant(defaultRole, {
+    code: 'NOT_FOUND',
+    message: 'Default role not found'
+  });
 
   const user = await db
     .insert(users)

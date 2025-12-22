@@ -27,6 +27,7 @@ import { getAllChannelUserPermissions } from '../db/queries/channels';
 import { getUserById, getUserByToken } from '../db/queries/users';
 import { channels } from '../db/schema';
 import { getUserRoles } from '../routers/users/get-user-roles';
+import { invariant } from './invariant';
 import { pubsub } from './pubsub';
 import type { Context } from './trpc';
 
@@ -46,13 +47,15 @@ const createContext = async ({
 
   const decodedUser = await getUserByToken(token);
 
-  if (!decodedUser) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
+  invariant(decodedUser, {
+    code: 'UNAUTHORIZED',
+    message: 'Invalid authentication token'
+  });
 
-  if (decodedUser.banned) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'User is banned' });
-  }
+  invariant(!decodedUser.banned, {
+    code: 'FORBIDDEN',
+    message: 'User is banned'
+  });
 
   const hasPermission = async (targetPermission: Permission | Permission[]) => {
     const user = await getUserById(decodedUser.id);
@@ -162,27 +165,24 @@ const createContext = async ({
   const needsPermission = async (
     targetPermission: Permission | Permission[]
   ) => {
-    if (!(await hasPermission(targetPermission))) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Insufficient permissions'
-      });
-    }
+    invariant(await hasPermission(targetPermission), {
+      code: 'FORBIDDEN',
+      message: 'Insufficient permissions'
+    });
   };
 
   const needsChannelPermission = async (
     channelId: number,
     targetPermission: ChannelPermission
   ) => {
-    if (!(await hasChannelPermission(channelId, targetPermission))) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Insufficient channel permissions'
-      });
-    }
+    invariant(await hasChannelPermission(channelId, targetPermission), {
+      code: 'FORBIDDEN',
+      message: 'Insufficient channel permissions'
+    });
   };
 
   const throwValidationError = (field: string, message: string) => {
+    // this mimics the zod validation error format
     throw new TRPCError({
       code: 'BAD_REQUEST',
       message: JSON.stringify([

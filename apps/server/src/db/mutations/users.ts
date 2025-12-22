@@ -7,7 +7,10 @@ import { userRoles } from '../schema';
 const fallbackUsersToDefaultRole = async (roleId: number) => {
   const defaultRole = await getDefaultRole();
 
-  invariant(defaultRole, 'Default role not found');
+  invariant(defaultRole, {
+    code: 'NOT_FOUND',
+    message: 'Default role not found'
+  });
 
   await db.transaction(async (tx) => {
     const affectedUsers = await tx

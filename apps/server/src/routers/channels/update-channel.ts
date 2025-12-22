@@ -5,7 +5,6 @@ import { db } from '../../db';
 import { publishChannel } from '../../db/publishers';
 import { channels } from '../../db/schema';
 import { enqueueActivityLog } from '../../queues/activity-log';
-import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const updateChannelRoute = protectedProcedure
@@ -28,8 +27,6 @@ const updateChannelRoute = protectedProcedure
       .where(eq(channels.id, input.channelId))
       .returning()
       .get();
-
-    invariant(updatedChannel, 'Channel not found');
 
     publishChannel(updatedChannel.id, 'update');
     enqueueActivityLog({

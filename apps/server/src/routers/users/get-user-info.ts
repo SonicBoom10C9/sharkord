@@ -18,7 +18,10 @@ const getUserInfoRoute = protectedProcedure
 
     const user = await getUserById(input.userId);
 
-    invariant(user, 'User not found');
+    invariant(user, {
+      code: 'NOT_FOUND',
+      message: 'User not found'
+    });
 
     const [logins, files, messages] = await Promise.all([
       getLastLogins(user.id, 6),

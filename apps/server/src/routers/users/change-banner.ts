@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { db } from '../../db';
@@ -7,6 +6,7 @@ import { publishUser } from '../../db/publishers';
 import { getUserById } from '../../db/queries/users';
 import { users } from '../../db/schema';
 import { fileManager } from '../../utils/file-manager';
+import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const changeBannerRoute = protectedProcedure
@@ -18,9 +18,10 @@ const changeBannerRoute = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     const user = await getUserById(ctx.userId);
 
-    if (!user) {
-      throw new TRPCError({ code: 'NOT_FOUND' });
-    }
+    invariant(user, {
+      code: 'NOT_FOUND',
+      message: 'User not found'
+    });
 
     if (user.bannerId) {
       await removeFile(user.bannerId);

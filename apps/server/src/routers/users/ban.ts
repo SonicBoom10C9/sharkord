@@ -1,11 +1,11 @@
 import { ActivityLogType, DisconnectCode, Permission } from '@sharkord/shared';
-import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { db } from '../../db';
 import { publishUser } from '../../db/publishers';
 import { users } from '../../db/schema';
 import { enqueueActivityLog } from '../../queues/activity-log';
+import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const banRoute = protectedProcedure
@@ -18,12 +18,10 @@ const banRoute = protectedProcedure
   .mutation(async ({ ctx, input }) => {
     await ctx.needsPermission(Permission.MANAGE_USERS);
 
-    if (input.userId === ctx.user.id) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'You cannot ban yourself'
-      });
-    }
+    invariant(input.userId !== ctx.user.id, {
+      code: 'BAD_REQUEST',
+      message: 'You cannot ban yourself.'
+    });
 
     const userWs = ctx.getUserWs(input.userId);
 

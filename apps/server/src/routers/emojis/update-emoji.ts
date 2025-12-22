@@ -21,7 +21,10 @@ const updateEmojiRoute = protectedProcedure
 
     const existingEmoji = await getEmojiById(input.emojiId);
 
-    invariant(existingEmoji, 'Emoji not found.');
+    invariant(existingEmoji, {
+      code: 'NOT_FOUND',
+      message: 'Emoji not found'
+    });
 
     const exists = await emojiExists(input.name);
 

@@ -22,7 +22,10 @@ const deleteInviteRoute = protectedProcedure
       .returning()
       .get();
 
-    invariant(removedInvite, 'Invite not found');
+    invariant(removedInvite, {
+      code: 'NOT_FOUND',
+      message: 'Invite not found'
+    });
 
     enqueueActivityLog({
       type: ActivityLogType.DELETED_INVITE,

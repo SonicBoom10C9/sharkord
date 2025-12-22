@@ -5,7 +5,6 @@ import { db } from '../../db';
 import { publishCategory } from '../../db/publishers';
 import { categories } from '../../db/schema';
 import { enqueueActivityLog } from '../../queues/activity-log';
-import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const addCategoryRoute = protectedProcedure
@@ -23,19 +22,15 @@ const addCategoryRoute = protectedProcedure
 
     const targetPosition = (result?.maxPos ?? 0) + 1;
 
-    const [created] = await db
+    const created = await db
       .insert(categories)
       .values({
         name: input.name,
         position: targetPosition,
         createdAt: Date.now()
       })
-      .returning();
-
-    invariant(created, {
-      code: 'INTERNAL_SERVER_ERROR',
-      message: 'Could not create category'
-    });
+      .returning()
+      .get();
 
     publishCategory(created.id, 'create');
     enqueueActivityLog({

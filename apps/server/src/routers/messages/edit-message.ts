@@ -25,11 +25,17 @@ const editMessageRoute = protectedProcedure
       .limit(1)
       .get();
 
-    invariant(message, 'Message not found');
+    invariant(message, {
+      code: 'NOT_FOUND',
+      message: 'Message not found'
+    });
     invariant(
       message.userId === ctx.user.id ||
         (await ctx.hasPermission(Permission.MANAGE_MESSAGES)),
-      'You do not have permission to edit this message'
+      {
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to edit this message'
+      }
     );
 
     await db

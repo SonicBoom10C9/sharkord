@@ -28,7 +28,10 @@ const removeRoleRoute = protectedProcedure
       )
       .limit(1);
 
-    invariant(existing.length > 0, 'User does not have this role');
+    invariant(existing.length > 0, {
+      code: 'NOT_FOUND',
+      message: 'User does not have this role'
+    });
 
     await db
       .delete(userRoles)

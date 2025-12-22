@@ -21,9 +21,18 @@ const deleteRoleRoute = protectedProcedure
 
     const role = await getRole(input.roleId);
 
-    invariant(role, 'Role not found');
-    invariant(!role.isPersistent, 'Cannot delete a persistent role');
-    invariant(!role.isDefault, 'Cannot delete the default role');
+    invariant(role, {
+      code: 'NOT_FOUND',
+      message: 'Role not found'
+    });
+    invariant(!role.isPersistent, {
+      code: 'FORBIDDEN',
+      message: 'Cannot delete a persistent role'
+    });
+    invariant(!role.isDefault, {
+      code: 'FORBIDDEN',
+      message: 'Cannot delete the default role'
+    });
 
     await fallbackUsersToDefaultRole(role.id);
     await db.delete(roles).where(eq(roles.id, role.id));

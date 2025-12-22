@@ -112,7 +112,7 @@ describe('invites router', () => {
       caller.invites.add({
         code: 'duplicate-code'
       })
-    ).rejects.toThrow('Invite code should be unique');
+    ).rejects.toThrow('An invite with this code already exists');
   });
 
   test('should delete existing invite', async () => {

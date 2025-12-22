@@ -24,7 +24,10 @@ const deleteChannelRoute = protectedProcedure
       .returning()
       .get();
 
-    invariant(removedChannel, 'Channel not found');
+    invariant(removedChannel, {
+      code: 'NOT_FOUND',
+      message: 'Channel not found'
+    });
 
     const runtime = VoiceRuntime.findById(removedChannel.id);
 

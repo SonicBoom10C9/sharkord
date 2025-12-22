@@ -4,12 +4,13 @@ import {
   type Permission,
   type TUser
 } from '@sharkord/shared';
-import { initTRPC, TRPCError } from '@trpc/server';
+import { initTRPC } from '@trpc/server';
 import chalk from 'chalk';
 import type WebSocket from 'ws';
 import { config } from '../config';
 import { logger } from '../logger';
 import type { TConnectionInfo } from '../types';
+import { invariant } from './invariant';
 import { pubsub } from './pubsub';
 
 export type Context = {
@@ -63,11 +64,10 @@ const timingMiddleware = t.middleware(async ({ path, next }) => {
 });
 
 const authMiddleware = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.authenticated) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED'
-    });
-  }
+  invariant(ctx.authenticated, {
+    code: 'UNAUTHORIZED',
+    message: 'You must be authenticated to perform this action.'
+  });
 
   return next();
 });

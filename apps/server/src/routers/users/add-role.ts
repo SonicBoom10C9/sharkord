@@ -28,7 +28,10 @@ const addRoleRoute = protectedProcedure
       )
       .limit(1);
 
-    invariant(existing.length === 0, 'User already has this role');
+    invariant(existing.length === 0, {
+      code: 'CONFLICT',
+      message: 'User already has this role'
+    });
 
     await db.insert(userRoles).values({
       userId: input.userId,

@@ -46,7 +46,10 @@ const joinServerRoute = t.procedure
       message: 'Invalid password'
     });
 
-    invariant(ctx.user, 'Unauthorized');
+    invariant(ctx.user, {
+      code: 'UNAUTHORIZED',
+      message: 'User not authenticated'
+    });
 
     ctx.authenticated = true;
     ctx.setWsUserId(ctx.user.id);
@@ -77,7 +80,10 @@ const joinServerRoute = t.procedure
       (u) => u.id === ctx.user.id
     );
 
-    invariant(foundPublicUser, 'User not present in public users');
+    invariant(foundPublicUser, {
+      code: 'NOT_FOUND',
+      message: 'User not present in public users'
+    });
 
     logger.info(`%s joined the server`, ctx.user.name);
 

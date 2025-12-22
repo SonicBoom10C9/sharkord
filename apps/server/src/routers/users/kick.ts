@@ -1,7 +1,7 @@
 import { ActivityLogType, DisconnectCode, Permission } from '@sharkord/shared';
-import { TRPCError } from '@trpc/server';
 import z from 'zod';
 import { enqueueActivityLog } from '../../queues/activity-log';
+import { invariant } from '../../utils/invariant';
 import { protectedProcedure } from '../../utils/trpc';
 
 const kickRoute = protectedProcedure
@@ -16,12 +16,10 @@ const kickRoute = protectedProcedure
 
     const userWs = ctx.getUserWs(input.userId);
 
-    if (!userWs) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User is not connected'
-      });
-    }
+    invariant(userWs, {
+      code: 'NOT_FOUND',
+      message: 'User is not connected'
+    });
 
     userWs.close(DisconnectCode.KICKED, input.reason);
 

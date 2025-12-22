@@ -22,11 +22,17 @@ const deleteMessageRoute = protectedProcedure
       .limit(1)
       .get();
 
-    invariant(targetMessage, 'Message not found');
+    invariant(targetMessage, {
+      code: 'NOT_FOUND',
+      message: 'Message not found'
+    });
     invariant(
       targetMessage.userId === ctx.user.id ||
         (await ctx.hasPermission(Permission.MANAGE_MESSAGES)),
-      'You do not have permission to delete this message'
+      {
+        code: 'FORBIDDEN',
+        message: 'You do not have permission to delete this message'
+      }
     );
 
     const files = await getFilesByMessageId(input.messageId);
