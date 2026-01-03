@@ -2,7 +2,10 @@ import { createSelector } from '@reduxjs/toolkit';
 import { OWNER_ROLE_ID } from '@sharkord/shared';
 import { createCachedSelector } from 're-reselect';
 import type { IRootState } from '../store';
-import { currentVoiceChannelIdSelector } from './channels/selectors';
+import {
+  channelReadStateByIdSelector,
+  currentVoiceChannelIdSelector
+} from './channels/selectors';
 import { typingMapSelector } from './messages/selectors';
 import { rolesSelector } from './roles/selectors';
 import type { TVoiceUser } from './types';
@@ -113,3 +116,10 @@ export const ownVoiceUserSelector = createSelector(
   (ownUserId, voiceUsers) =>
     voiceUsers?.find((voiceUser) => voiceUser.id === ownUserId)
 );
+
+export const unreadMessagesCountSelector = createCachedSelector(
+  [channelReadStateByIdSelector],
+  (unreadCount) => {
+    return unreadCount ?? 0;
+  }
+)((_: IRootState, channelId: number) => channelId);

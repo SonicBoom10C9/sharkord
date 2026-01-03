@@ -13,6 +13,14 @@ export const currentVoiceChannelIdSelector = (state: IRootState) =>
 export const channelPermissionsSelector = (state: IRootState) =>
   state.server.channelPermissions;
 
+export const channelsReadStatesSelector = (state: IRootState) =>
+  state.server.readStatesMap;
+
+export const channelReadStateByIdSelector = createCachedSelector(
+  [channelsReadStatesSelector, (_: IRootState, channelId: number) => channelId],
+  (readStatesMap, channelId) => readStatesMap[channelId]
+)((_, channelId: number) => channelId);
+
 export const channelByIdSelector = createCachedSelector(
   [channelsSelector, (_: IRootState, channelId: number) => channelId],
   (channels, channelId) => channels.find((channel) => channel.id === channelId)

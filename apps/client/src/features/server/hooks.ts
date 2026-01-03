@@ -14,6 +14,7 @@ import {
   publicServerSettingsSelector,
   serverNameSelector,
   typingUsersByChannelIdSelector,
+  unreadMessagesCountSelector,
   userRolesSelector,
   voiceUsersByChannelIdSelector
 } from './selectors';
@@ -98,3 +99,8 @@ export const useVoiceUsersByChannelId = (channelId: number) =>
   );
 
 export const useOwnVoiceUser = () => useSelector(ownVoiceUserSelector);
+
+export const useUnreadMessagesCount = (channelId: number) =>
+  useSelector((state: IRootState) =>
+    unreadMessagesCountSelector(state, channelId)
+  );
