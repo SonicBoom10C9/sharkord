@@ -3,6 +3,7 @@ import { memo } from 'react';
 import type { TServerScreenBaseProps } from '../screens';
 import { ServerScreenLayout } from '../server-screen-layout';
 import { Devices } from './devices';
+import { Password } from './password';
 import { Profile } from './profile';
 
 type TUserSettingsProps = TServerScreenBaseProps;
@@ -15,6 +16,7 @@ const UserSettings = memo(({ close }: TUserSettingsProps) => {
           <TabsList className="mb-6">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="devices">Devices</TabsTrigger>
+            <TabsTrigger value="password">Password</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -22,6 +24,9 @@ const UserSettings = memo(({ close }: TUserSettingsProps) => {
           </TabsContent>
           <TabsContent value="devices" className="space-y-6">
             <Devices />
+          </TabsContent>
+          <TabsContent value="password" className="space-y-6">
+            <Password />
           </TabsContent>
         </Tabs>
       </div>
