@@ -15,7 +15,7 @@ export const useMessages = (channelId: number) => {
   const messages = useMessagesByChannelId(channelId);
   const inited = useRef(false);
   const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(messages.length === 0);
   const [cursor, setCursor] = useState<number | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
