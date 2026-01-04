@@ -14,6 +14,7 @@ import { getUsersRoute } from './get-users';
 import { kickRoute } from './kick';
 import { removeRoleRoute } from './remove-role';
 import { unbanRoute } from './unban';
+import { updatePasswordRoute } from './update-password';
 import { updateUserRoute } from './update-user';
 
 export const usersRouter = t.router({
@@ -22,6 +23,7 @@ export const usersRouter = t.router({
   addRole: addRoleRoute,
   removeRole: removeRoleRoute,
   update: updateUserRoute,
+  updatePassword: updatePasswordRoute,
   getInfo: getUserInfoRoute,
   getAll: getUsersRoute,
   kick: kickRoute,

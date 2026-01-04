@@ -18,7 +18,7 @@ import { HttpValidationError } from './utils';
 
 const zBody = z.object({
   identity: z.string().min(1, 'Identity is required'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(4, 'Password is required').max(128),
   invite: z.string().optional()
 });
 

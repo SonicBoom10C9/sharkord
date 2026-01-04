@@ -11,6 +11,7 @@ export enum ActivityLogType {
   USER_KICKED = "USER_KICKED",
   USER_BANNED = "USER_BANNED",
   USER_UNBANNED = "USER_UNBANNED",
+  USER_UPDATED_PASSWORD = "USER_UPDATED_PASSWORD",
   // -------------------- ROLES --------------------
   CREATED_ROLE = "CREATED_ROLE",
   DELETED_ROLE = "DELETED_ROLE",
@@ -63,6 +64,7 @@ export type TActivityLogDetailsMap = {
     inviteCode: string | undefined;
   };
   [ActivityLogType.USER_LEFT]: {};
+  [ActivityLogType.USER_UPDATED_PASSWORD]: {};
   // -------------------- ROLES --------------------
   [ActivityLogType.CREATED_ROLE]: {
     roleId: number;
