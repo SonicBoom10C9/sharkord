@@ -22,7 +22,7 @@ const unbanRoute = protectedProcedure
         banned: false,
         banReason: null
       })
-      .where(eq(users.id, ctx.userId));
+      .where(eq(users.id, input.userId));
 
     publishUser(input.userId, 'update');
 

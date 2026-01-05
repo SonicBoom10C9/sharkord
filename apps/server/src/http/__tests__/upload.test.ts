@@ -2,7 +2,7 @@ import { UploadHeaders, type TTempFile } from '@sharkord/shared';
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 import fs from 'node:fs/promises';
 import path from 'path';
-import { login } from '../../__tests__/helpers';
+import { login, uploadFile } from '../../__tests__/helpers';
 import { tdb, testsBaseUrl } from '../../__tests__/setup';
 import { settings } from '../../db/schema';
 import { TMP_PATH } from '../../helpers/paths';
@@ -12,19 +12,6 @@ const getMockFile = (content: string): File => {
 
   return new File([blob], 'test-upload.txt', { type: 'text/plain' });
 };
-
-const uploadFile = async (file: File, token: string) =>
-  fetch(`${testsBaseUrl}/upload`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      [UploadHeaders.TYPE]: file.type,
-      [UploadHeaders.CONTENT_LENGTH]: file.size.toString(),
-      [UploadHeaders.ORIGINAL_NAME]: file.name,
-      [UploadHeaders.TOKEN]: token
-    },
-    body: file
-  });
 
 describe('/upload', () => {
   let token: string;
