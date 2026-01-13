@@ -3,7 +3,7 @@
 The official SDK for building Sharkord plugins. This package provides TypeScript types and interfaces to extend Sharkord with custom functionality.
 
 > [!NOTE]
-> Sharkord is in alpha stage. The plugin API will most likely change in future releases.
+> Sharkord is in alpha stage. The plugin API will most likely have breaking changes in future releases.
 
 ## Creating a Plugin
 
@@ -149,12 +149,7 @@ const onLoad = (ctx: PluginContext) => {
 2. Create a `plugins` folder if it doesn't exist.
 3. Create a folder for your plugin (e.g., `my-plugin`).
 4. Copy your compiled plugin files (e.g., from `dist/`) into the `my-plugin` folder.
-5. Enable your plugin by editing `data/plugins/plugin-states.json` or through the admin panel:
-   ```json
-   {
-     "my-plugin": true
-   }
-   ```
+5. Enable your plugin in the server settings under the "Plugins" section.
 6. Restart Sharkord or reload plugins from the admin panel.
 7. Your plugin should now be loaded and active!
 
@@ -169,7 +164,7 @@ const onLoad = (ctx: PluginContext) => {
 
 ## API Reference
 
-No documentation available yet. Use the types in `/src/index.ts` as a reference.
+No documentation available yet. Use the types in `packages/plugin-sdk/src/index.ts` as a reference.
 
 ## License
 

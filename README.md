@@ -48,9 +48,6 @@ docker run \
   sharkord/sharkord:latest
 ```
 
-> [!IMPORTANT]  
-> If you are planning to use plugins, it's recommended to use Docker since they can execute arbitrary code on the host machine, which may pose security risks.
-
 ### Open the Client
 
 Once the server is running, open your web browser and navigate to [http://localhost:4991](http://localhost:4991) to access the Sharkord client interface. If you're running the server on a different machine, replace `localhost` with the server's IP address or domain name.
@@ -80,6 +77,13 @@ Upon first run, Sharkord will generate a default configuration file located at `
 ## HTTPS Setup
 
 At the moment, Sharkord does not have built-in support for HTTPS. To secure your server with HTTPS, we recommend using a reverse proxy like Nginx or Caddy in front of Sharkord. This setup allows you to manage SSL/TLS certificates and handle secure connections.
+
+## Plugins
+
+See the [Plugin SDK](packages/plugin-sdk/README.md) for more information on creating and using plugins with Sharkord.
+
+> [!IMPORTANT]  
+> If you are planning to use plugins, it's recommended to use Docker since they can execute arbitrary code on the host machine, which may pose security risks. Only use plugins you trust.
 
 ## Contributing
 
