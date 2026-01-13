@@ -43,7 +43,7 @@ docker run \
   -p 4991:4991/tcp \
   -p 40000-40020:40000-40020/tcp \
   -p 40000-40020:40000-40020/udp \
-  -v "./data":/root/.config/sharkord \
+  -v ./data:/root/.config/sharkord \
   --name sharkord \
   sharkord/sharkord:latest
 ```
