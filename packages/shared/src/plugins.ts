@@ -11,7 +11,6 @@ export const zPluginPackageJson = z.object({
     homepage: z.url().optional(),
     description: z.string().min(1, "Plugin description is required"),
     logo: z.string().optional(),
-    enabled: z.boolean().optional().default(true),
   }),
 });
 
@@ -93,7 +92,7 @@ export const zParsedDomCommand = z.object({
     z.object({
       name: z.string(),
       value: z.unknown(),
-    })
+    }),
   ),
 });
 

@@ -32,7 +32,7 @@ class PluginManager {
   private loadedPlugins = new Map<string, PluginModule>();
   private loadErrors = new Map<string, string>();
   private logs = new Map<string, TLogEntry[]>();
-  private logsListeners = new Map<string, (newLog: TLogEntry) => void>();
+  private logsListeners = new Map<string, Set<(newLog: TLogEntry) => void>>();
   private commands = new Map<string, RegisteredCommand[]>();
   private pluginStates: PluginStatesMap = {};
 
@@ -149,11 +149,21 @@ class PluginManager {
 
   public onLog = (pluginId: string, listener: (newLog: TLogEntry) => void) => {
     if (!this.logsListeners.has(pluginId)) {
-      this.logsListeners.set(pluginId, listener);
+      this.logsListeners.set(pluginId, new Set());
     }
 
+    this.logsListeners.get(pluginId)!.add(listener);
+
     return () => {
-      this.logsListeners.delete(pluginId);
+      const listeners = this.logsListeners.get(pluginId);
+
+      if (listeners) {
+        listeners.delete(listener);
+
+        if (listeners.size === 0) {
+          this.logsListeners.delete(pluginId);
+        }
+      }
     };
   };
 
@@ -193,17 +203,33 @@ class PluginManager {
       pluginLogs.shift();
     }
 
-    const listener = this.logsListeners.get(pluginId);
+    const listeners = this.logsListeners.get(pluginId);
 
-    if (listener) {
-      listener(newLog);
+    if (listeners) {
+      for (const listener of listeners) {
+        listener(newLog);
+      }
     }
 
     pubsub.publish(ServerEvents.PLUGIN_LOG, newLog);
   };
 
-  private getPluginPath = (pluginId: string) =>
-    path.join(PLUGINS_PATH, pluginId);
+  private validatePluginId = (pluginId: string) => {
+    // prevent path traversal attacks (e.g. "../../etc/passwd")
+    if (
+      pluginId.includes('..') ||
+      pluginId.includes('/') ||
+      pluginId.includes('\\') ||
+      pluginId.includes('\0')
+    ) {
+      throw new Error(`Invalid plugin ID: '${pluginId}'`);
+    }
+  };
+
+  private getPluginPath = (pluginId: string) => {
+    this.validatePluginId(pluginId);
+    return path.join(PLUGINS_PATH, pluginId);
+  };
 
   private unregisterPluginCommands = (pluginId: string) => {
     const pluginCommands = this.commands.get(pluginId);
@@ -533,12 +559,16 @@ class PluginManager {
   };
 
   private createUnloadContext = (pluginId: string): UnloadPluginContext => {
-    const baseCtx = this.createContext(pluginId);
-
     return {
-      log: baseCtx.log,
-      debug: baseCtx.debug,
-      error: baseCtx.error
+      log: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'info', ...message);
+      },
+      debug: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'debug', ...message);
+      },
+      error: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'error', ...message);
+      }
     };
   };
 }

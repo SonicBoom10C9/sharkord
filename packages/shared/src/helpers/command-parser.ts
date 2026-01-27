@@ -31,7 +31,11 @@ const toDomCommand = (
         : JSON.stringify(command.response, null, 2)
       : "";
 
-  return `<command data-plugin-id="${command.pluginId}" data-plugin-logo="${command.imageUrl}" data-command="${command.name}" data-args='${JSON.stringify(
+  const logoAttr = command.imageUrl
+    ? ` data-plugin-logo="${command.imageUrl}"`
+    : '';
+
+  return `<command data-plugin-id="${command.pluginId}"${logoAttr} data-command="${command.name}" data-args='${JSON.stringify(
     sanitizedArgs
   )}' data-status='${command.status}' data-response='${responseString}'></command>`;
 };

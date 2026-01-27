@@ -187,10 +187,11 @@ describe('plugins router', () => {
       ).rejects.toThrow('Insufficient permissions');
     });
 
-    test('should return all plugin commands', async () => {
+    test('should return commands filtered by pluginId', async () => {
       const { caller } = await initTest();
 
       await pluginManager.load('plugin-b');
+      await pluginManager.load('plugin-with-events');
 
       const commands = await caller.plugins.getCommands({
         pluginId: 'plugin-b'
@@ -199,6 +200,32 @@ describe('plugins router', () => {
       expect(commands).toBeDefined();
       expect(commands['plugin-b']).toBeDefined();
       expect(commands['plugin-b']!.length).toBe(2);
+      // should not include other plugins when filtering
+      expect(commands['plugin-with-events']).toBeUndefined();
+    });
+
+    test('should return all commands when pluginId is omitted', async () => {
+      const { caller } = await initTest();
+
+      await pluginManager.load('plugin-b');
+      await pluginManager.load('plugin-with-events');
+
+      const commands = await caller.plugins.getCommands({});
+
+      expect(commands).toBeDefined();
+      expect(commands['plugin-b']).toBeDefined();
+      expect(commands['plugin-with-events']).toBeDefined();
+    });
+
+    test('should return empty object for non-existent pluginId', async () => {
+      const { caller } = await initTest();
+
+      const commands = await caller.plugins.getCommands({
+        pluginId: 'nonexistent-plugin'
+      });
+
+      expect(commands).toBeDefined();
+      expect(Object.keys(commands).length).toBe(0);
     });
 
     test('should return empty object when no plugins loaded', async () => {
@@ -209,7 +236,7 @@ describe('plugins router', () => {
       });
 
       expect(commands).toBeDefined();
-      expect(Object.keys(commands).length).toBeGreaterThanOrEqual(0);
+      expect(Object.keys(commands).length).toBe(0);
     });
 
     test('should include command metadata', async () => {
