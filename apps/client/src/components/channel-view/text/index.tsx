@@ -2,6 +2,7 @@ import { TiptapInput } from '@/components/tiptap-input';
 import Spinner from '@/components/ui/spinner';
 import { useCan, useChannelCan } from '@/features/server/hooks';
 import { useMessages } from '@/features/server/messages/hooks';
+import { useFlatPluginCommands } from '@/features/server/plugins/hooks';
 import { playSound } from '@/features/server/sounds/actions';
 import { SoundType } from '@/features/server/types';
 import { getTrpcError } from '@/helpers/parse-trpc-errors';
@@ -28,6 +29,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
   const { messages, hasMore, loadMore, loading, fetching, groupedMessages } =
     useMessages(channelId);
   const [newMessage, setNewMessage] = useState('');
+  const allPluginCommands = useFlatPluginCommands();
   const { containerRef, onScroll } = useScrollController({
     messages,
     fetching,
@@ -42,6 +44,14 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
       channelCan(ChannelPermission.SEND_MESSAGES)
     );
   }, [can, channelCan]);
+
+  const pluginCommands = useMemo(
+    () =>
+      can(Permission.EXECUTE_PLUGIN_COMMANDS)
+        ? allPluginCommands
+        : undefined,
+    [can, allPluginCommands]
+  );
 
   const { files, removeFile, clearFiles, uploading, uploadingSize } =
     useUploadFiles(!canSendMessages);
@@ -165,6 +175,7 @@ const TextChannel = memo(({ channelId }: TChannelProps) => {
             onSubmit={onSendMessage}
             onTyping={sendTypingSignal}
             disabled={uploading || !canSendMessages}
+            commands={pluginCommands}
           />
           <Button
             size="icon"

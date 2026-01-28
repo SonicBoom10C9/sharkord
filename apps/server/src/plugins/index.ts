@@ -1,4 +1,8 @@
-import type { PluginContext, UnloadPluginContext } from '@sharkord/plugin-sdk';
+import type {
+  PluginContext,
+  PluginSettings,
+  UnloadPluginContext
+} from '@sharkord/plugin-sdk';
 import {
   ServerEvents,
   zPluginPackageJson,
@@ -7,12 +11,17 @@ import {
   type TCommandsMapByPlugin,
   type TInvokerContext,
   type TLogEntry,
-  type TPluginInfo
+  type TPluginInfo,
+  type TPluginSettingDefinition,
+  type TPluginSettingsResponse
 } from '@sharkord/shared';
 import chalk from 'chalk';
+import { eq } from 'drizzle-orm';
 import fs from 'node:fs/promises';
 import path from 'path';
+import { db } from '../db';
 import { getSettings } from '../db/queries/server';
+import { pluginData } from '../db/schema';
 import { PLUGINS_PATH } from '../helpers/paths';
 import { logger } from '../logger';
 import { VoiceRuntime } from '../runtimes/voice';
@@ -26,41 +35,83 @@ type PluginModule = {
 
 type PluginStatesMap = Record<string, boolean>;
 
-const PLUGIN_STATES_FILE = path.join(PLUGINS_PATH, 'plugin-states.json');
-
 class PluginManager {
   private loadedPlugins = new Map<string, PluginModule>();
   private loadErrors = new Map<string, string>();
   private logs = new Map<string, TLogEntry[]>();
-  private logsListeners = new Map<string, (newLog: TLogEntry) => void>();
+  private logsListeners = new Map<string, Set<(newLog: TLogEntry) => void>>();
   private commands = new Map<string, RegisteredCommand[]>();
   private pluginStates: PluginStatesMap = {};
+  private settingDefinitions = new Map<string, TPluginSettingDefinition[]>();
+  private settingValues = new Map<string, Record<string, unknown>>();
 
   private loadPluginStates = async () => {
     try {
-      if (await fs.exists(PLUGIN_STATES_FILE)) {
-        const content = await fs.readFile(PLUGIN_STATES_FILE, 'utf-8');
-        this.pluginStates = JSON.parse(content);
-      } else {
-        this.pluginStates = {};
-        await this.savePluginStates();
-      }
+      await this.migratePluginStatesFile();
+
+      const rows = await db
+        .select({
+          pluginId: pluginData.pluginId,
+          enabled: pluginData.enabled
+        })
+        .from(pluginData);
+
+      this.pluginStates = rows.reduce<PluginStatesMap>((acc, row) => {
+        acc[row.pluginId] = row.enabled;
+        return acc;
+      }, {});
     } catch (error) {
       logger.error('Failed to load plugin states:', error);
       this.pluginStates = {};
     }
   };
 
-  private savePluginStates = async () => {
+  private migratePluginStatesFile = async () => {
+    const statesFile = path.join(PLUGINS_PATH, 'plugin-states.json');
+
     try {
-      await fs.writeFile(
-        PLUGIN_STATES_FILE,
-        JSON.stringify(this.pluginStates, null, 2),
-        'utf-8'
-      );
+      if (!(await fs.exists(statesFile))) return;
+
+      const content = await fs.readFile(statesFile, 'utf-8');
+      const states = JSON.parse(content) as PluginStatesMap;
+
+      const entries = Object.entries(states).map(([pluginId, enabled]) => ({
+        pluginId,
+        enabled
+      }));
+
+      if (entries.length > 0) {
+        for (const entry of entries) {
+          await db
+            .insert(pluginData)
+            .values(entry)
+            .onConflictDoUpdate({
+              target: pluginData.pluginId,
+              set: { enabled: entry.enabled }
+            });
+        }
+      }
+
+      await fs.unlink(statesFile);
     } catch (error) {
-      logger.error('Failed to save plugin states:', error);
+      logger.error('Failed to migrate plugin states file:', error);
     }
+  };
+
+  private getPluginEnabledFromDb = async (pluginId: string) => {
+    const rows = await db
+      .select({ enabled: pluginData.enabled })
+      .from(pluginData)
+      .where(eq(pluginData.pluginId, pluginId));
+
+    return rows[0]?.enabled ?? false;
+  };
+
+  private ensurePluginState = async (pluginId: string) => {
+    if (this.pluginStates[pluginId] !== undefined) return;
+
+    const enabled = await this.getPluginEnabledFromDb(pluginId);
+    this.pluginStates[pluginId] = enabled;
   };
 
   private isPluginEnabled = (pluginId: string): boolean => {
@@ -69,7 +120,14 @@ class PluginManager {
 
   private setPluginEnabled = async (pluginId: string, enabled: boolean) => {
     this.pluginStates[pluginId] = enabled;
-    await this.savePluginStates();
+
+    await db
+      .insert(pluginData)
+      .values({ pluginId, enabled })
+      .onConflictDoUpdate({
+        target: pluginData.pluginId,
+        set: { enabled }
+      });
   };
 
   public getCommandByName = (
@@ -149,11 +207,21 @@ class PluginManager {
 
   public onLog = (pluginId: string, listener: (newLog: TLogEntry) => void) => {
     if (!this.logsListeners.has(pluginId)) {
-      this.logsListeners.set(pluginId, listener);
+      this.logsListeners.set(pluginId, new Set());
     }
 
+    this.logsListeners.get(pluginId)!.add(listener);
+
     return () => {
-      this.logsListeners.delete(pluginId);
+      const listeners = this.logsListeners.get(pluginId);
+
+      if (listeners) {
+        listeners.delete(listener);
+
+        if (listeners.size === 0) {
+          this.logsListeners.delete(pluginId);
+        }
+      }
     };
   };
 
@@ -193,17 +261,33 @@ class PluginManager {
       pluginLogs.shift();
     }
 
-    const listener = this.logsListeners.get(pluginId);
+    const listeners = this.logsListeners.get(pluginId);
 
-    if (listener) {
-      listener(newLog);
+    if (listeners) {
+      for (const listener of listeners) {
+        listener(newLog);
+      }
     }
 
     pubsub.publish(ServerEvents.PLUGIN_LOG, newLog);
   };
 
-  private getPluginPath = (pluginId: string) =>
-    path.join(PLUGINS_PATH, pluginId);
+  private validatePluginId = (pluginId: string) => {
+    // prevent path traversal attacks (e.g. "../../etc/passwd")
+    if (
+      pluginId.includes('..') ||
+      pluginId.includes('/') ||
+      pluginId.includes('\\') ||
+      pluginId.includes('\0')
+    ) {
+      throw new Error(`Invalid plugin ID: '${pluginId}'`);
+    }
+  };
+
+  private getPluginPath = (pluginId: string) => {
+    this.validatePluginId(pluginId);
+    return path.join(PLUGINS_PATH, pluginId);
+  };
 
   private unregisterPluginCommands = (pluginId: string) => {
     const pluginCommands = this.commands.get(pluginId);
@@ -298,6 +382,7 @@ class PluginManager {
   };
 
   public togglePlugin = async (pluginId: string, enabled: boolean) => {
+    await this.ensurePluginState(pluginId);
     const wasEnabled = this.isPluginEnabled(pluginId);
 
     await this.setPluginEnabled(pluginId, enabled);
@@ -337,6 +422,8 @@ class PluginManager {
 
     eventBus.unload(pluginId);
     this.unregisterPluginCommands(pluginId);
+    this.settingDefinitions.delete(pluginId);
+    this.settingValues.delete(pluginId);
     this.loadedPlugins.delete(pluginId);
     this.loadErrors.delete(pluginId);
 
@@ -344,6 +431,7 @@ class PluginManager {
   };
 
   public getPluginInfo = async (pluginId: string): Promise<TPluginInfo> => {
+    await this.ensurePluginState(pluginId);
     const pluginPath = this.getPluginPath(pluginId);
     const packageJsonPath = path.join(pluginPath, 'package.json');
 
@@ -408,7 +496,7 @@ class PluginManager {
 
       await mod.onLoad(ctx);
 
-      this.loadedPlugins.set(pluginId, mod as PluginModule);
+      this.loadedPlugins.set(pluginId, mod);
       this.loadErrors.delete(pluginId);
 
       this.logPlugin(
@@ -430,6 +518,149 @@ class PluginManager {
 
       await this.unload(pluginId);
     }
+  };
+
+  private loadSettingsFromDb = async (
+    pluginId: string
+  ): Promise<Record<string, unknown>> => {
+    const rows = await db
+      .select()
+      .from(pluginData)
+      .where(eq(pluginData.pluginId, pluginId));
+
+    if (rows.length > 0 && rows[0]!.settings) {
+      return rows[0]!.settings;
+    }
+
+    return {};
+  };
+
+  private saveSettingsToDb = async (
+    pluginId: string,
+    values: Record<string, unknown>
+  ) => {
+    const enabled = this.pluginStates[pluginId] ?? true;
+
+    await db
+      .insert(pluginData)
+      .values({ pluginId, enabled, settings: values })
+      .onConflictDoUpdate({
+        target: pluginData.pluginId,
+        set: { settings: values }
+      });
+  };
+
+  private registerSettings = async (
+    pluginId: string,
+    definitions: readonly TPluginSettingDefinition[]
+  ): Promise<PluginSettings> => {
+    this.settingDefinitions.set(pluginId, [...definitions]);
+
+    // load existing values from DB, merge with defaults
+    const dbValues = await this.loadSettingsFromDb(pluginId);
+    const merged: Record<string, unknown> = {};
+
+    for (const def of definitions) {
+      merged[def.key] =
+        dbValues[def.key] !== undefined ? dbValues[def.key] : def.defaultValue;
+    }
+
+    this.settingValues.set(pluginId, merged);
+
+    // persist merged values back (in case new defaults were added)
+    await this.saveSettingsToDb(pluginId, merged);
+
+    this.logPlugin(
+      pluginId,
+      'debug',
+      `Registered ${definitions.length} setting(s): ${definitions.map((d) => d.key).join(', ')}`
+    );
+
+    return {
+      get: (key: string) => {
+        const values = this.settingValues.get(pluginId);
+        if (!values) return undefined;
+        return values[key];
+      },
+      set: (key: string, value: unknown) => {
+        const values = this.settingValues.get(pluginId);
+        if (!values) return;
+
+        const def = this.settingDefinitions
+          .get(pluginId)
+          ?.find((d) => d.key === key);
+        if (!def) {
+          this.logPlugin(
+            pluginId,
+            'error',
+            `Setting key '${key}' is not registered.`
+          );
+          return;
+        }
+
+        values[key] = value;
+
+        // persist async without blocking
+        this.saveSettingsToDb(pluginId, values).catch((err) => {
+          this.logPlugin(
+            pluginId,
+            'error',
+            `Failed to persist setting '${key}':`,
+            err
+          );
+        });
+      }
+    };
+  };
+
+  public getPluginSettings = async (
+    pluginId: string
+  ): Promise<TPluginSettingsResponse> => {
+    const definitions = this.settingDefinitions.get(pluginId) || [];
+    let values = this.settingValues.get(pluginId);
+
+    if (!values) {
+      // plugin might not be loaded, try reading from DB
+      const dbValues = await this.loadSettingsFromDb(pluginId);
+      values = {};
+
+      for (const def of definitions) {
+        values[def.key] =
+          dbValues[def.key] !== undefined
+            ? dbValues[def.key]
+            : def.defaultValue;
+      }
+    }
+
+    return { definitions, values };
+  };
+
+  public updatePluginSetting = async (
+    pluginId: string,
+    key: string,
+    value: unknown
+  ) => {
+    const definitions = this.settingDefinitions.get(pluginId);
+
+    if (!definitions) {
+      throw new Error(`Plugin '${pluginId}' has no registered settings.`);
+    }
+
+    const def = definitions.find((d) => d.key === key);
+
+    if (!def) {
+      throw new Error(
+        `Setting '${key}' is not registered for plugin '${pluginId}'.`
+      );
+    }
+
+    const values = this.settingValues.get(pluginId) || {};
+    values[key] = value;
+    this.settingValues.set(pluginId, values);
+
+    await this.saveSettingsToDb(pluginId, values);
+
+    this.logPlugin(pluginId, 'debug', `Setting '${key}' updated to:`, value);
   };
 
   private createContext = (pluginId: string): PluginContext => {
@@ -519,7 +750,7 @@ class PluginManager {
             name: command.name,
             description: command.description,
             args: command.args,
-            command: command as CommandDefinition<unknown>
+            command
           });
 
           this.logPlugin(
@@ -528,17 +759,28 @@ class PluginManager {
             `Registered command: ${command.name}${command.description ? ` - ${command.description}` : ''}`
           );
         }
+      },
+      settings: {
+        register: (definitions) => {
+          return this.registerSettings(pluginId, definitions) as ReturnType<
+            PluginContext['settings']['register']
+          >;
+        }
       }
     };
   };
 
   private createUnloadContext = (pluginId: string): UnloadPluginContext => {
-    const baseCtx = this.createContext(pluginId);
-
     return {
-      log: baseCtx.log,
-      debug: baseCtx.debug,
-      error: baseCtx.error
+      log: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'info', ...message);
+      },
+      debug: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'debug', ...message);
+      },
+      error: (...message: unknown[]) => {
+        this.logPlugin(pluginId, 'error', ...message);
+      }
     };
   };
 }

@@ -6,15 +6,21 @@ import { protectedProcedure } from '../../utils/trpc';
 const getCommandsRoute = protectedProcedure
   .input(
     z.object({
-      pluginId: z.string()
+      pluginId: z.string().optional()
     })
   )
-  .query(async ({ ctx }) => {
+  .query(async ({ ctx, input }) => {
     await ctx.needsPermission(Permission.MANAGE_PLUGINS);
 
-    const commands = await pluginManager.getCommands();
+    const allCommands = pluginManager.getCommands();
 
-    return commands;
+    if (input.pluginId) {
+      const pluginCommands = allCommands[input.pluginId];
+
+      return pluginCommands ? { [input.pluginId]: pluginCommands } : {};
+    }
+
+    return allCommands;
   });
 
 export { getCommandsRoute };

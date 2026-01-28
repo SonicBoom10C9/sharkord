@@ -21,7 +21,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, []);
 
       expect(result).toBe(
-        "<command data-plugin-id=\"test-plugin\" data-plugin-logo=\"undefined\" data-command=\"test-command\" data-args='[]' data-status='pending' data-response=''></command>"
+        "<command data-plugin-id=\"test-plugin\" data-command=\"test-command\" data-args='[]' data-status='pending' data-response=''></command>",
       );
     });
 
@@ -55,7 +55,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, ["Alice"]);
 
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="greet" data-args=\'[{"name":"username","value":"Alice","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="greet" data-args=\'[{"name":"username","value":"Alice","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>',
       );
     });
 
@@ -109,7 +109,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, [10, 20, "add"]);
 
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="calculate" data-args=\'[{"name":"a","value":10,"status":"completed"},{"name":"b","value":20,"status":"completed"},{"name":"operation","value":"add","status":"completed"}]\' data-status=\'completed\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="calculate" data-args=\'[{"name":"a","value":10,"status":"completed"},{"name":"b","value":20,"status":"completed"},{"name":"operation","value":"add","status":"completed"}]\' data-status=\'completed\' data-response=\'\'></command>',
       );
     });
 
@@ -155,7 +155,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, ["alice", "secret123"]);
 
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="login" data-args=\'[{"name":"username","value":"alice","status":"pending"},{"name":"password","value":"****","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="login" data-args=\'[{"name":"username","value":"alice","status":"pending"},{"name":"password","value":"****","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>',
       );
     });
 
@@ -175,7 +175,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, []);
 
       expect(result).toBe(
-        "<command data-plugin-id=\"test-plugin\" data-plugin-logo=\"undefined\" data-command=\"ping\" data-args='[]' data-status='pending' data-response=''></command>"
+        "<command data-plugin-id=\"test-plugin\" data-command=\"ping\" data-args='[]' data-status='pending' data-response=''></command>",
       );
     });
 
@@ -209,7 +209,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, [true]);
 
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="toggle" data-args=\'[{"name":"enabled","value":true,"status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="toggle" data-args=\'[{"name":"enabled","value":true,"status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>',
       );
     });
 
@@ -254,7 +254,7 @@ describe("command-parser", () => {
 
       // undefined values are not included in the JSON stringification
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="test" data-args=\'[{"name":"value1","value":null,"status":"pending"},{"name":"value2","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="test" data-args=\'[{"name":"value1","value":null,"status":"pending"},{"name":"value2","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>',
       );
     });
 
@@ -302,7 +302,7 @@ describe("command-parser", () => {
       const result = toDomCommand(command, ["abc123", "xyz789"]);
 
       expect(result).toBe(
-        '<command data-plugin-id="test-plugin" data-plugin-logo="undefined" data-command="auth" data-args=\'[{"name":"token","value":"****","status":"pending"},{"name":"apiKey","value":"****","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>'
+        '<command data-plugin-id="test-plugin" data-command="auth" data-args=\'[{"name":"token","value":"****","status":"pending"},{"name":"apiKey","value":"****","status":"pending"}]\' data-status=\'pending\' data-response=\'\'></command>',
       );
     });
   });
@@ -488,7 +488,7 @@ describe("command-parser", () => {
       };
 
       expect(() => parseDomCommand(domElement)).toThrow(
-        "Invalid command arguments JSON"
+        "Invalid command arguments JSON",
       );
     });
 
@@ -616,12 +616,12 @@ describe("command-parser", () => {
 
       // Extract attributes from the DOM string
       const commandMatch = domString.match(
-        /<command data-plugin-id="([^"]+)" data-plugin-logo="([^"]*)" data-command="([^"]+)" data-args='([^']+)' data-status='([^']*)' data-response='([^']*)'><\/command>/
+        /<command data-plugin-id="([^"]+)"(?: data-plugin-logo="([^"]*)")? data-command="([^"]+)" data-args='([^']+)' data-status='([^']*)' data-response='([^']*)'><\/command>/,
       );
       const domElement = {
         attribs: {
           "data-plugin-id": commandMatch![1],
-          "data-plugin-logo": commandMatch![2],
+          ...(commandMatch![2] ? { "data-plugin-logo": commandMatch![2] } : {}),
           "data-command": commandMatch![3],
           "data-args": commandMatch![4],
           "data-status": commandMatch![5],
@@ -683,12 +683,12 @@ describe("command-parser", () => {
 
       // Extract attributes from the DOM string
       const commandMatch = domString.match(
-        /<command data-plugin-id="([^"]+)" data-plugin-logo="([^"]*)" data-command="([^"]+)" data-args='([^']+)' data-status='([^']*)' data-response='([^']*)'><\/command>/
+        /<command data-plugin-id="([^"]+)"(?: data-plugin-logo="([^"]*)")? data-command="([^"]+)" data-args='([^']+)' data-status='([^']*)' data-response='([^']*)'><\/command>/,
       );
       const domElement = {
         attribs: {
           "data-plugin-id": commandMatch![1],
-          "data-plugin-logo": commandMatch![2],
+          ...(commandMatch![2] ? { "data-plugin-logo": commandMatch![2] } : {}),
           "data-command": commandMatch![3],
           "data-args": commandMatch![4],
           "data-status": commandMatch![5],
@@ -705,6 +705,47 @@ describe("command-parser", () => {
         { name: "public", value: "visible" },
         { name: "secret", value: "****" },
       ]);
+    });
+
+    test("should include logo attribute when imageUrl is provided", () => {
+      const command: RegisteredCommand & {
+        imageUrl?: string;
+        status: "pending" | "completed" | "failed";
+      } = {
+        pluginId: "test-plugin",
+        name: "test",
+        status: "pending",
+        imageUrl: "https://example.com/logo.png",
+        command: {
+          name: "test",
+          executes: async () => ({}),
+        },
+      };
+
+      const result = toDomCommand(command, []);
+
+      expect(result).toContain(
+        'data-plugin-logo="https://example.com/logo.png"',
+      );
+    });
+
+    test("should omit logo attribute when imageUrl is undefined", () => {
+      const command: RegisteredCommand & {
+        imageUrl?: string;
+        status: "pending" | "completed" | "failed";
+      } = {
+        pluginId: "test-plugin",
+        name: "test",
+        status: "pending",
+        command: {
+          name: "test",
+          executes: async () => ({}),
+        },
+      };
+
+      const result = toDomCommand(command, []);
+
+      expect(result).not.toContain("data-plugin-logo");
     });
   });
 });
