@@ -1,5 +1,7 @@
 import { UserAvatar } from '@/components/user-avatar';
+import { useVolumeControl } from '@/components/voice-provider/volume-control-context';
 import type { TVoiceUser } from '@/features/server/types';
+import { useOwnUserId } from '@/features/server/users/hooks';
 import { cn } from '@/lib/utils';
 import { HeadphoneOff, MicOff, Monitor, Video } from 'lucide-react';
 import { memo, useCallback } from 'react';
@@ -7,6 +9,7 @@ import { CardControls } from './card-controls';
 import { CardGradient } from './card-gradient';
 import { useVoiceRefs } from './hooks/use-voice-refs';
 import { PinButton } from './pin-button';
+import { VolumeButton } from './volume-button';
 
 type TVoiceUserCardProps = {
   userId: number;
@@ -30,6 +33,9 @@ const VoiceUserCard = memo(
   }: TVoiceUserCardProps) => {
     const { videoRef, hasVideoStream, isSpeaking, speakingIntensity } =
       useVoiceRefs(userId);
+    const { getUserVolumeKey } = useVolumeControl();
+    const ownUserId = useOwnUserId();
+    const isOwnUser = userId === ownUserId;
 
     const handlePinToggle = useCallback(() => {
       if (isPinned) {
@@ -61,6 +67,7 @@ const VoiceUserCard = memo(
         <CardGradient />
 
         <CardControls>
+          {!isOwnUser && <VolumeButton volumeKey={getUserVolumeKey(userId)} />}
           {showPinControls && (
             <PinButton isPinned={isPinned} handlePinToggle={handlePinToggle} />
           )}

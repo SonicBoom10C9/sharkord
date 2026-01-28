@@ -7,22 +7,20 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Tooltip } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/user-avatar';
+import {
+  useVolumeControl,
+  type VolumeKey
+} from '@/components/voice-provider/volume-control-context';
 import { useVoiceUsersByChannelId } from '@/features/server/hooks';
 import { useOwnUserId, useUserById } from '@/features/server/users/hooks';
-import {
-  useVoice,
-  useVoiceChannelAudioExternalStreams
-} from '@/features/server/voice/hooks';
+import { useVoiceChannelAudioExternalStreams } from '@/features/server/voice/hooks';
 import { Headphones, Volume2, VolumeX } from 'lucide-react';
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useMemo } from 'react';
 
 type AudioStreamControlProps = {
   userId?: number;
-  streamId?: number;
+  volumeKey: VolumeKey;
   name: string;
-  volume: number;
-  onVolumeChange: (volume: number) => void;
-  onToggleMute: () => void;
 };
 
 type VolumeControllerProps = {
@@ -30,50 +28,17 @@ type VolumeControllerProps = {
 };
 
 type AudioStream = {
-  key: string;
+  volumeKey: VolumeKey;
   userId?: number;
-  streamId?: number;
   name: string;
 };
 
 const AudioStreamControl = memo(
-  ({
-    userId,
-    streamId,
-    name,
-    volume,
-    onVolumeChange,
-    onToggleMute
-  }: AudioStreamControlProps) => {
+  ({ userId, volumeKey, name }: AudioStreamControlProps) => {
     const user = useUserById(userId || 0);
-    const { getOrCreateRefs } = useVoice();
+    const { getVolume, setVolume, toggleMute } = useVolumeControl();
+    const volume = getVolume(volumeKey);
     const isMuted = volume === 0;
-
-    const applyVolume = useCallback(
-      (newVolume: number) => {
-        const refs = getOrCreateRefs(userId || streamId || 0);
-        const audioElement = streamId
-          ? refs.externalAudioRef.current
-          : refs.audioRef.current;
-
-        if (audioElement) {
-          audioElement.volume = newVolume / 100;
-        }
-      },
-      [userId, streamId, getOrCreateRefs]
-    );
-
-    const handleVolumeChange = useCallback(
-      (newVolume: number) => {
-        applyVolume(newVolume);
-        onVolumeChange(newVolume);
-      },
-      [applyVolume, onVolumeChange]
-    );
-
-    const handleToggle = useCallback(() => {
-      onToggleMute();
-    }, [onToggleMute]);
 
     return (
       <div className="flex items-center gap-3 py-2">
@@ -92,7 +57,7 @@ const AudioStreamControl = memo(
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleToggle}
+            onClick={() => toggleMute(volumeKey)}
             className="h-6 w-6 p-0"
           >
             {isMuted ? (
@@ -105,7 +70,7 @@ const AudioStreamControl = memo(
           <div className="w-24">
             <Slider
               value={[volume]}
-              onValueChange={(values) => handleVolumeChange(values[0] || 0)}
+              onValueChange={(values) => setVolume(volumeKey, values[0] || 0)}
               min={0}
               max={100}
               step={1}
@@ -125,49 +90,8 @@ const AudioStreamControl = memo(
 const VolumeController = memo(({ channelId }: VolumeControllerProps) => {
   const voiceUsers = useVoiceUsersByChannelId(channelId);
   const externalAudioStreams = useVoiceChannelAudioExternalStreams(channelId);
-  const { getOrCreateRefs } = useVoice();
+  const { getUserVolumeKey, getExternalVolumeKey } = useVolumeControl();
   const ownUserId = useOwnUserId();
-  const [volumes, setVolumes] = useState<Record<string, number>>({});
-  const previousVolumesRef = useRef<Record<string, number>>({});
-
-  const handleVolumeChange = useCallback((key: string, volume: number) => {
-    setVolumes((prev) => ({
-      ...prev,
-      [key]: volume
-    }));
-
-    if (volume > 0) {
-      previousVolumesRef.current[key] = volume;
-    }
-  }, []);
-
-  const handleToggleMute = useCallback(
-    (key: string, currentVolume: number) => {
-      const isMuted = currentVolume === 0;
-      const newVolume = isMuted ? (previousVolumesRef.current[key] ?? 100) : 0;
-
-      if (!isMuted) {
-        previousVolumesRef.current[key] = currentVolume;
-      }
-
-      setVolumes((prev) => ({
-        ...prev,
-        [key]: newVolume
-      }));
-
-      const isExternal = key.startsWith('external-');
-      const id = parseInt(key.split('-')[1] || '0', 10);
-      const refs = getOrCreateRefs(id);
-      const audioElement = isExternal
-        ? refs.externalAudioRef.current
-        : refs.audioRef.current;
-
-      if (audioElement) {
-        audioElement.volume = newVolume / 100;
-      }
-    },
-    [getOrCreateRefs]
-  );
 
   const audioStreams = useMemo(() => {
     const streams: AudioStream[] = [];
@@ -176,7 +100,7 @@ const VolumeController = memo(({ channelId }: VolumeControllerProps) => {
       if (voiceUser.id === ownUserId) return;
 
       streams.push({
-        key: `user-${voiceUser.id}`,
+        volumeKey: getUserVolumeKey(voiceUser.id),
         userId: voiceUser.id,
         name: voiceUser.name
       });
@@ -184,14 +108,19 @@ const VolumeController = memo(({ channelId }: VolumeControllerProps) => {
 
     externalAudioStreams.forEach((stream) => {
       streams.push({
-        key: `external-${stream.streamId}`,
-        streamId: stream.streamId,
+        volumeKey: getExternalVolumeKey(stream.streamId),
         name: stream.name || 'External Audio'
       });
     });
 
     return streams;
-  }, [voiceUsers, externalAudioStreams, ownUserId]);
+  }, [
+    voiceUsers,
+    externalAudioStreams,
+    ownUserId,
+    getUserVolumeKey,
+    getExternalVolumeKey
+  ]);
 
   return (
     <Popover>
@@ -219,15 +148,10 @@ const VolumeController = memo(({ channelId }: VolumeControllerProps) => {
           <div className="space-y-1 max-h-96 overflow-y-auto">
             {audioStreams.map((stream) => (
               <AudioStreamControl
-                key={stream.key}
+                key={stream.volumeKey}
                 userId={stream.userId}
-                streamId={stream.streamId}
+                volumeKey={stream.volumeKey}
                 name={stream.name}
-                volume={volumes[stream.key] ?? 100}
-                onVolumeChange={(vol) => handleVolumeChange(stream.key, vol)}
-                onToggleMute={() =>
-                  handleToggleMute(stream.key, volumes[stream.key] ?? 100)
-                }
               />
             ))}
             {audioStreams.length === 0 && (

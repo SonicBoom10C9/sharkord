@@ -21,14 +21,10 @@ const ExternalStream = memo(({ name, type }: TExternalStreamProps) => {
 
       <div className="flex items-center gap-1 opacity-60">
         {type === StreamKind.EXTERNAL_VIDEO && (
-          <>
-            <Video className="h-3 w-3 text-blue-500" />
-          </>
+          <Video className="h-3 w-3 text-blue-500" />
         )}
         {type === StreamKind.EXTERNAL_AUDIO && (
-          <>
-            <Headphones className="h-3 w-3 text-green-500" />
-          </>
+          <Headphones className="h-3 w-3 text-green-500" />
         )}
       </div>
     </div>
