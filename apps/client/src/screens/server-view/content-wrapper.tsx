@@ -61,7 +61,7 @@ const ContentWrapper = memo(() => {
   }
 
   return (
-    <main className="relative flex min-h-0 flex-1 flex-col bg-background">
+    <main className="flex flex-1 flex-col bg-background relative min-w-0 min-h-0">
       {content}
     </main>
   );
