@@ -1,21 +1,19 @@
+import { isEmptyMessage, Permission } from '@sharkord/shared';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { db } from '../../db';
 import { removeFile } from '../../db/mutations/files';
 import { publishMessage } from '../../db/publishers';
+import { getFilesByMessageId } from '../../db/queries/files';
 import { getMessageByFileId } from '../../db/queries/messages';
-import { protectedProcedure } from '../../utils/trpc';
-import { isEmptyMessage } from '@sharkord/shared';
-import { Permission } from '@sharkord/shared';
-import { invariant } from '../../utils/invariant';
-import { db } from '../../db';
 import { messages } from '../../db/schema';
 import { eventBus } from '../../plugins/event-bus';
-import { getFilesByMessageId } from '../../db/queries/files';
-import { eq } from 'drizzle-orm';
+import { invariant } from '../../utils/invariant';
+import { protectedProcedure } from '../../utils/trpc';
 
 const deleteFileRoute = protectedProcedure
   .input(z.object({ fileId: z.number() }))
   .mutation(async ({ input, ctx }) => {
-
     const message = await getMessageByFileId(input.fileId);
 
     invariant(message, {
@@ -25,7 +23,7 @@ const deleteFileRoute = protectedProcedure
 
     invariant(
       message.userId === ctx.user.id ||
-      (await ctx.hasPermission(Permission.MANAGE_MESSAGES)),
+        (await ctx.hasPermission(Permission.MANAGE_MESSAGES)),
       {
         code: 'FORBIDDEN',
         message: 'You do not have permission to delete this file'
@@ -33,7 +31,7 @@ const deleteFileRoute = protectedProcedure
     );
 
     await removeFile(input.fileId);
-    
+
     publishMessage(message.id, message.channelId, 'update');
 
     const files = await getFilesByMessageId(message.id);
@@ -45,7 +43,7 @@ const deleteFileRoute = protectedProcedure
 
       eventBus.emit('message:deleted', {
         channelId: message.channelId,
-        messageId: message.Id
+        messageId: message.id
       });
     }
   });
