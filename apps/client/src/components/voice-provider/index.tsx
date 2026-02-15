@@ -60,7 +60,10 @@ export type TVoiceProvider = {
   ) => Promise<void>;
 } & Pick<
   ReturnType<typeof useLocalStreams>,
-  'localAudioStream' | 'localVideoStream' | 'localScreenShareStream' | 'localScreenShareAudioStream'
+  | 'localAudioStream'
+  | 'localVideoStream'
+  | 'localScreenShareStream'
+  | 'localScreenShareAudioStream'
 > &
   Pick<
     ReturnType<typeof useRemoteStreams>,
@@ -87,7 +90,7 @@ const VoiceProviderContext = createContext<TVoiceProvider>({
     videoRef: { current: null },
     audioRef: { current: null },
     screenShareRef: { current: null },
-    screenShareAudioRef: { current: null},
+    screenShareAudioRef: { current: null },
     externalAudioRef: { current: null },
     externalVideoRef: { current: null }
   }),
@@ -432,10 +435,12 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
 
         if (audioTrack) {
           logVoice('Obtained audio track', { audioTrack });
-          localScreenShareAudioProducer.current = await producerTransport.current?.produce({
-            track: audioTrack,
-            appData: { kind: StreamKind.SCREEN_AUDIO }
-          });
+
+          localScreenShareAudioProducer.current =
+            await producerTransport.current?.produce({
+              track: audioTrack,
+              appData: { kind: StreamKind.SCREEN_AUDIO }
+            });
 
           audioTrack.onended = () => {
             localScreenShareAudioProducer.current?.close();
@@ -454,6 +459,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
   }, [
     setLocalScreenShare,
     localScreenShareProducer,
+    localScreenShareAudioProducer,
     producerTransport,
     localScreenShareStream,
     devices.screenResolution,
@@ -600,6 +606,7 @@ const VoiceProvider = memo(({ children }: TVoiceProviderProps) => {
       localAudioStream,
       localVideoStream,
       localScreenShareStream,
+      localScreenShareAudioStream,
       remoteUserStreams,
       externalStreams
     ]
