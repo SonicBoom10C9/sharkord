@@ -60,12 +60,12 @@ There is an example `docker-compose.yaml` in [docs/docker/docker-compose.yaml](d
 
 Common settings you might want to customize. These override config file values and are useful for Docker deployments:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SHARKORD_PORT` | `4991` | HTTP/WebSocket listen port |
-| `SHARKORD_DEBUG` | `false` | Enable verbose logging |
-| `SHARKORD_WEBRTC_PORT` | `40000` | WebRTC server port (UDP+TCP) |
-| `SHARKORD_ANNOUNCED_ADDRESS` | _(auto-detected)_ | Public IP announced to WebRTC clients |
+| Variable                            | Default           | Description                           |
+| ----------------------------------- | ----------------- | ------------------------------------- |
+| `SHARKORD_PORT`                     | `4991`            | HTTP/WebSocket listen port            |
+| `SHARKORD_DEBUG`                    | `false`           | Enable verbose logging                |
+| `SHARKORD_WEBRTC_PORT`              | `40000`           | WebRTC server port (UDP+TCP)          |
+| `SHARKORD_WEBRTC_ANNOUNCED_ADDRESS` | _(auto-detected)_ | Public IP announced to WebRTC clients |
 
 #### Windows
 
@@ -99,19 +99,19 @@ Upon first run, Sharkord will generate a default configuration file located at `
 
 ### Options
 
-| Field | Default | Description |
-| --- | --- | --- |
-| `port` | `4991` | The port number on which the server will listen for HTTP and WebSocket connections |
-| `debug` | `false` | Enable debug logging for detailed server logs and diagnostics |
-| `autoupdate` | `false` | When enabled, it will automatically check for and install updates with no user intervention |
-| `webrtcPort` | `40000` | The port for the WebRTC server to listen on (UDP+TCP) |
+| Field              | Default   | Description                                                                                                                   |
+| ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `port`             | `4991`    | The port number on which the server will listen for HTTP and WebSocket connections                                            |
+| `debug`            | `false`   | Enable debug logging for detailed server logs and diagnostics                                                                 |
+| `autoupdate`       | `false`   | When enabled, it will automatically check for and install updates with no user intervention                                   |
+| `webrtcPort`       | `40000`   | The port for the WebRTC server to listen on (UDP+TCP)                                                                         |
 | `announcedAddress` | _(empty)_ | When set, announces this address for WebRTC connections. Useful when your reverse proxy is on a different host than Sharkord. |
 
 ## HTTPS Setup
 
 At the moment, Sharkord does not have built-in support for HTTPS. To secure your server with HTTPS, we recommend using a reverse proxy like Nginx or Caddy in front of Sharkord. This setup allows you to manage SSL/TLS certificates and handle secure connections.
 
-Reverse proxies should be set up with 3 forwarding rules. 
+Reverse proxies should be set up with 3 forwarding rules.
 
 1. HTTPS (Port 443 - Bonus points for binding HTTP to port 80 and auto-upgrading to HTTPS) sharkord.example.com forwarding to Sharkord's IP on port 4991.
 2. Raw UDP port 40000 to Sharkord's webRtcServerPort default 40000.
@@ -190,7 +190,7 @@ http {
         ssl_protocols TLSv1.2 TLSv1.3;
         ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
         ssl_prefer_server_ciphers off;
-        
+
         # Enable OCSP stapling
         ssl_stapling on;
         ssl_stapling_verify on;
@@ -208,12 +208,12 @@ http {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            
+
             # WebSocket support (if needed)
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "upgrade";
-            
+
             # Timeouts
             proxy_connect_timeout 60s;
             proxy_send_timeout 60s;
@@ -229,7 +229,7 @@ stream {
     log_format basic '$remote_addr [$time_local] '
                      '$protocol $status $bytes_sent $bytes_received '
                      '$session_time';
-    
+
     access_log /var/log/nginx/stream-access.log basic;
     error_log /var/log/nginx/stream-error.log;
 

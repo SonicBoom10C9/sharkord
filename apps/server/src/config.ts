@@ -105,8 +105,9 @@ if (!configExists) {
 config = applyEnvOverrides(config, {
   'server.port': 'SHARKORD_PORT',
   'server.debug': 'SHARKORD_DEBUG',
-  'mediasoup.webrtcPort': 'SHARKORD_WEBRTC_PORT',
-  'mediasoup.announcedAddress': 'SHARKORD_ANNOUNCED_ADDRESS'
+  'server.autoupdate': 'SHARKORD_AUTOUPDATE',
+  'webRtc.port': 'SHARKORD_WEBRTC_PORT',
+  'webRtc.announcedAddress': 'SHARKORD_WEBRTC_ANNOUNCED_ADDRESS'
 });
 
 config = Object.freeze(config);
