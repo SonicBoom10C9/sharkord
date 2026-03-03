@@ -13,4 +13,5 @@ CREATE INDEX `direct_messages_user_one_idx` ON `direct_messages` (`user_one_id`)
 CREATE INDEX `direct_messages_user_two_idx` ON `direct_messages` (`user_two_id`);--> statement-breakpoint
 ALTER TABLE `channels` ADD `is_dm_channel` integer DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE `settings` ADD `direct_messages_enabled` integer NOT NULL DEFAULT 1;--> statement-breakpoint
-ALTER TABLE `settings` ADD `storage_file_sharing_in_direct_messages` integer NOT NULL DEFAULT 1;
+ALTER TABLE `settings` ADD `storage_file_sharing_in_direct_messages` integer NOT NULL DEFAULT 1; --> statement-breakpoint
+INSERT OR IGNORE INTO `role_permissions` (`role_id`, `permission`, `created_at`) SELECT 1, 'PIN_MESSAGES', unixepoch() WHERE EXISTS (SELECT 1 FROM `roles` WHERE `id` = 1);
