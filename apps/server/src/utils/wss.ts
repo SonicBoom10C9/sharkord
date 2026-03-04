@@ -246,8 +246,11 @@ const createWsServer = async (server: http.Server) => {
             const { token } = parsed.data as TConnectionParams;
 
             ws.token = token;
-          } catch {
-            logger.error('Failed to parse initial WebSocket message');
+          } catch (error) {
+            logger.error(
+              'Failed to parse initial WebSocket message: %s',
+              getErrorMessage(error)
+            );
           }
         });
 
@@ -318,7 +321,7 @@ const createWsServer = async (server: http.Server) => {
     });
 
     wss.on('error', (err) => {
-      logger.error('WebSocket server error:', err);
+      logger.error('WebSocket server error: %s', getErrorMessage(err));
     });
 
     applyWSSHandler({
