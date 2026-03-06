@@ -104,6 +104,8 @@ export const setBrowserNotifications = async (enabled: boolean) => {
     const permission = await Notification.requestPermission();
 
     if (permission !== 'granted') {
+      toast.error('Notification permission was denied.');
+
       return;
     }
   }
@@ -116,6 +118,22 @@ export const setBrowserNotificationsForMentions = (enabled: boolean) => {
   store.dispatch(appSliceActions.setBrowserNotificationsForMentions(enabled));
   setLocalStorageItemBool(
     LocalStorageKey.BROWSER_NOTIFICATIONS_FOR_MENTIONS,
+    enabled
+  );
+};
+
+export const setBrowserNotificationsForDms = async (enabled: boolean) => {
+  if (enabled && 'Notification' in window) {
+    const permission = await Notification.requestPermission();
+
+    if (permission !== 'granted') {
+      return;
+    }
+  }
+
+  store.dispatch(appSliceActions.setBrowserNotificationsForDms(enabled));
+  setLocalStorageItemBool(
+    LocalStorageKey.BROWSER_NOTIFICATIONS_FOR_DMS,
     enabled
   );
 };

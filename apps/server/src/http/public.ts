@@ -7,6 +7,7 @@ import { isFileOrphaned } from '../db/queries/files';
 import { getMessageByFileId } from '../db/queries/messages';
 import { channels, files } from '../db/schema';
 import { verifyFileToken } from '../helpers/files-crypto';
+import { getErrorMessage } from '../helpers/get-error-message';
 import { PUBLIC_PATH } from '../helpers/paths';
 import { logger } from '../logger';
 
@@ -20,7 +21,7 @@ const pipeFileStream = (
   fileStream.pipe(res);
 
   fileStream.on('error', (err) => {
-    logger.error('Error serving file:', err);
+    logger.error('Error serving file: %s', getErrorMessage(err));
 
     if (!res.headersSent) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
