@@ -246,7 +246,6 @@ const Connect = memo(() => {
         >
           Sharkord
         </a>
-
       </div>
     </div>
   );
