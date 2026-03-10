@@ -121,7 +121,10 @@ const Connect = memo(() => {
   }, [info]);
 
   return (
-    <div className="flex flex-col gap-2 justify-center items-center h-full">
+    <div className="flex flex-col gap-2 justify-center items-center h-full relative">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+        <LanguageSwitcher variant="icon" />
+      </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="flex flex-col items-center gap-2 text-center">
@@ -225,7 +228,7 @@ const Connect = memo(() => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-center gap-2 text-xs text-muted-foreground select-none">
+      <div className="flex justify-center items-center gap-2 text-xs text-muted-foreground select-none">
         <span>v{VITE_APP_VERSION}</span>
         <a
           href="https://github.com/sharkord/sharkord"
@@ -244,7 +247,6 @@ const Connect = memo(() => {
           Sharkord
         </a>
 
-        <LanguageSwitcher variant="icon" />
       </div>
     </div>
   );

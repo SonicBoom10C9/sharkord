@@ -1,5 +1,6 @@
-import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
 import {
+  cn,
   Select,
   SelectContent,
   SelectItem,
@@ -12,15 +13,16 @@ import { useTranslation } from 'react-i18next';
 
 type TLanguageSwitcherProps = {
   variant?: 'icon' | 'full';
+  className?: string;
 };
 
 const LanguageSwitcher = memo(
-  ({ variant = 'full' }: TLanguageSwitcherProps) => {
+  ({ variant = 'full', className }: TLanguageSwitcherProps) => {
     const { i18n } = useTranslation();
 
     const handleChange = useCallback(
       (value: string) => {
-        i18n.changeLanguage(value as SupportedLanguage);
+        i18n.changeLanguage(value);
       },
       [i18n]
     );
@@ -28,7 +30,11 @@ const LanguageSwitcher = memo(
     return (
       <Select value={i18n.language} onValueChange={handleChange}>
         <SelectTrigger
-          className={variant === 'icon' ? 'w-auto gap-1 px-2' : 'w-36'}
+          className={cn(
+            'w-auto gap-1 px-2',
+            variant === 'full' && 'w-36',
+            className
+          )}
         >
           {variant === 'icon' && <Languages className="h-4 w-4 shrink-0" />}
           <SelectValue />
