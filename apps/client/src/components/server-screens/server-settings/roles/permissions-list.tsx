@@ -19,9 +19,9 @@ const Permission = memo(
     return (
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <Label>{t(`perm_${permission}` as `perm_SEND_MESSAGES`)}</Label>
+          <Label>{t(`perm_${permission}`)}</Label>
           <span className="text-sm text-muted-foreground">
-            {t(`permDesc_${permission}` as `permDesc_SEND_MESSAGES`)}
+            {t(`permDesc_${permission}`)}
           </span>
         </div>
         <Switch

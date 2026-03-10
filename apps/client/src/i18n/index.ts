@@ -1,3 +1,4 @@
+import { getLocalStorageItem, LocalStorageKey } from '@/helpers/storage';
 import type { Locale } from 'date-fns';
 import { enUS, zhCN } from 'date-fns/locale';
 import i18n from 'i18next';
@@ -11,25 +12,32 @@ export const SUPPORTED_LANGUAGES = [
 
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]['code'];
 
-const LANGUAGE_STORAGE_KEY = 'sharkord_language';
-
-const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+const savedLanguage = getLocalStorageItem(LocalStorageKey.LANGUAGE);
 
 const detectBrowserLanguage = (): SupportedLanguage => {
-  const browserLangs = navigator.languages ?? [navigator.language];
-  for (const lang of browserLangs) {
-    const code = lang.split('-')[0];
-    if (SUPPORTED_LANGUAGES.some((l) => l.code === code)) {
-      return code as SupportedLanguage;
+  try {
+    const browserLangs = navigator.languages ?? [navigator.language];
+
+    for (const lang of browserLangs) {
+      const code = lang.split('-')[0];
+
+      if (SUPPORTED_LANGUAGES.some((l) => l.code === code)) {
+        return code as SupportedLanguage;
+      }
     }
+  } catch {
+    // ignore
   }
+
   return 'en';
 };
 
-const initialLanguage: SupportedLanguage =
-  savedLanguage && SUPPORTED_LANGUAGES.some((l) => l.code === savedLanguage)
-    ? (savedLanguage as SupportedLanguage)
-    : detectBrowserLanguage();
+const isSavedLanguageValid =
+  savedLanguage && SUPPORTED_LANGUAGES.some((l) => l.code === savedLanguage);
+
+const initialLanguage: SupportedLanguage = isSavedLanguageValid
+  ? savedLanguage
+  : detectBrowserLanguage();
 
 export const i18nReady = i18n
   .use(initReactI18next)
@@ -59,20 +67,5 @@ export const i18nReady = i18n
   });
 
 i18n.on('languageChanged', (lng) => {
-  localStorage.setItem(LANGUAGE_STORAGE_KEY, lng);
+  localStorage.setItem(LocalStorageKey.LANGUAGE, lng);
 });
-
-declare module 'i18next' {
-  interface CustomTypeOptions {
-    defaultNS: 'common';
-    resources: {
-      common: typeof import('./locales/en/common.json');
-      connect: typeof import('./locales/en/connect.json');
-      disconnected: typeof import('./locales/en/disconnected.json');
-      sidebar: typeof import('./locales/en/sidebar.json');
-      topbar: typeof import('./locales/en/topbar.json');
-      dialogs: typeof import('./locales/en/dialogs.json');
-      settings: typeof import('./locales/en/settings.json');
-    };
-  }
-}
