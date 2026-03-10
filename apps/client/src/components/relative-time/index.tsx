@@ -1,3 +1,4 @@
+import { useDateLocale } from '@/hooks/use-date-locale';
 import {
   format,
   formatDistanceToNow,
@@ -35,24 +36,13 @@ const getUpdateInterval = (date: Date): number | null => {
   return ONE_HOUR;
 };
 
-const getFormattedTime = (date: Date): string => {
-  const now = new Date();
-  const twentyFourHoursAgo = subHours(now, 24);
-
-  // past 24 hours show relative time, eg: 5 minutes ago
-  if (isWithinInterval(date, { start: twentyFourHoursAgo, end: now })) {
-    return formatDistanceToNow(date, { addSuffix: true });
-  }
-
-  return format(date, DEFAULT_FORMAT);
-};
-
 const RelativeTime = memo(
   ({
     date,
     interval, // optional override
     children
   }: TRelativeTimeProps) => {
+    const dateLocale = useDateLocale();
     const parsedDate = useMemo(
       () => (typeof date === 'string' ? new Date(date) : date),
       [date]
@@ -75,6 +65,18 @@ const RelativeTime = memo(
 
       return () => clearInterval(timer);
     }, [interval, parsedDate]);
+
+    const getFormattedTime = (d: Date): string => {
+      const now = new Date();
+      const twentyFourHoursAgo = subHours(now, 24);
+
+      // past 24 hours show relative time, eg: 5 minutes ago
+      if (isWithinInterval(d, { start: twentyFourHoursAgo, end: now })) {
+        return formatDistanceToNow(d, { addSuffix: true, locale: dateLocale });
+      }
+
+      return format(d, DEFAULT_FORMAT, { locale: dateLocale });
+    };
 
     return children(getFormattedTime(parsedDate));
   }
