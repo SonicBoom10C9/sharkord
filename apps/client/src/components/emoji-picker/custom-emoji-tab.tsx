@@ -46,11 +46,7 @@ const CustomEmojiTab = memo(
         </div>
 
         <div className="flex-1 min-h-0">
-          <EmojiGrid
-            emojis={convertedEmojis}
-            onSelect={handleEmojiSelect}
-            height={300}
-          />
+          <EmojiGrid emojis={convertedEmojis} onSelect={handleEmojiSelect} />
         </div>
       </div>
     );
