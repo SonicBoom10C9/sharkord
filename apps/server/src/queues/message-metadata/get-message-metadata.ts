@@ -10,6 +10,8 @@ import { getLinkPreview } from 'link-preview-js';
 import { isIP } from 'net';
 import { db } from '../../db';
 import { messages } from '../../db/schema';
+import { getErrorMessage } from '../../helpers/get-error-message';
+import { logger } from '../../logger';
 
 const metadataCache = new Map<string, TGenericObject>();
 
@@ -112,8 +114,8 @@ const urlMetadataParser = async (
     const metadata = (await Promise.all(promises)) as TMessageMetadata[]; // TODO: fix these types
 
     return metadata ?? [];
-  } catch {
-    // ignore
+  } catch (error) {
+    logger.error('Error parsing URL metadata: %s', getErrorMessage(error));
   }
 
   return [];
