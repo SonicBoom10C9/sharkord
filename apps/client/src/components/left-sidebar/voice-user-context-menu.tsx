@@ -17,7 +17,7 @@ type TVoiceUserContextMenuProps = {
   children: ReactNode;
 };
 
-export const VoiceUserContextMenu = ({
+const VoiceUserContextMenu = ({
   user,
   children
 }: TVoiceUserContextMenuProps) => {
@@ -71,3 +71,5 @@ export const VoiceUserContextMenu = ({
     </ContextMenu>
   );
 };
+
+export { VoiceUserContextMenu };
