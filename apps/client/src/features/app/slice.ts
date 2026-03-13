@@ -1,5 +1,9 @@
-import { getLocalStorageItemBool, LocalStorageKey } from '@/helpers/storage';
-import type { TDevices } from '@/types';
+import {
+  getLocalStorageItemAsNumber,
+  getLocalStorageItemBool,
+  LocalStorageKey
+} from '@/helpers/storage';
+import type { TDevices, TMessageJumpToTarget } from '@/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface TAppState {
@@ -18,6 +22,9 @@ export interface TAppState {
   browserNotifications: boolean;
   browserNotificationsForMentions: boolean;
   browserNotificationsForDms: boolean;
+  messageJumpTarget: TMessageJumpToTarget | undefined;
+  voiceChatSidebarOpen: boolean;
+  voiceChatChannelId: number | undefined;
 }
 
 const initialState: TAppState = {
@@ -47,6 +54,14 @@ const initialState: TAppState = {
   browserNotificationsForDms: getLocalStorageItemBool(
     LocalStorageKey.BROWSER_NOTIFICATIONS_FOR_DMS,
     false
+  ),
+  messageJumpTarget: undefined,
+  voiceChatSidebarOpen: getLocalStorageItemBool(
+    LocalStorageKey.VOICE_CHAT_SIDEBAR_STATE,
+    false
+  ),
+  voiceChatChannelId: getLocalStorageItemAsNumber(
+    LocalStorageKey.VOICE_CHAT_SIDEBAR_CHANNEL_ID
   )
 };
 
@@ -111,6 +126,22 @@ export const appSlice = createSlice({
     },
     setBrowserNotificationsForDms: (state, action: PayloadAction<boolean>) => {
       state.browserNotificationsForDms = action.payload;
+    },
+    setMessageJumpTarget: (
+      state,
+      action: PayloadAction<TMessageJumpToTarget | undefined>
+    ) => {
+      state.messageJumpTarget = action.payload;
+    },
+    setVoiceChatSidebar: (
+      state,
+      action: PayloadAction<{
+        open: boolean;
+        channelId?: number;
+      }>
+    ) => {
+      state.voiceChatSidebarOpen = action.payload.open;
+      state.voiceChatChannelId = action.payload.channelId;
     }
   }
 });

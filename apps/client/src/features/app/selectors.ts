@@ -42,6 +42,20 @@ export const browserNotificationsForMentionsSelector = (state: IRootState) =>
 export const browserNotificationsForDmsSelector = (state: IRootState) =>
   state.app.browserNotificationsForDms;
 
+export const messageJumpTargetSelector = (state: IRootState) =>
+  state.app.messageJumpTarget;
+
+export const voiceChatSidebarOpenSelector = (state: IRootState) =>
+  state.app.voiceChatSidebarOpen;
+
+export const voiceChatChannelIdSelector = (state: IRootState) =>
+  state.app.voiceChatChannelId;
+
+export const voiceChatSidebarDataSelector = createSelector(
+  [voiceChatSidebarOpenSelector, voiceChatChannelIdSelector],
+  (isOpen, channelId) => ({ isOpen, channelId })
+);
+
 export const threadSidebarDataSelector = createSelector(
   [
     threadSidebarOpenSelector,
