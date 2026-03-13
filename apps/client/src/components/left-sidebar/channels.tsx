@@ -96,7 +96,10 @@ const Voice = memo(
           )}
         </ItemWrapper>
         {channel.type === 'VOICE' && (
-          <div className="ml-6 space-y-1 mt-1">
+          <div
+            className="ml-6 space-y-1 mt-1"
+            onContextMenu={(e) => e.stopPropagation()}
+          >
             {users.map((user) => (
               <VoiceUser
                 key={user.id}
