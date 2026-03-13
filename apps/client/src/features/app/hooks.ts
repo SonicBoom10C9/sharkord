@@ -10,10 +10,12 @@ import {
   dmsOpenSelector,
   isAutoConnectingSelector,
   loadingPluginsSelector,
+  messageJumpTargetSelector,
   modViewOpenSelector,
   modViewUserIdSelector,
   selectedDmChannelIdSelector,
-  threadSidebarDataSelector
+  threadSidebarDataSelector,
+  voiceChatSidebarDataSelector
 } from './selectors';
 
 export const useIsAppLoading = () => useSelector(appLoadingSelector);
@@ -49,3 +51,9 @@ export const useBrowserNotificationsForMentions = () =>
 
 export const useBrowserNotificationsForDms = () =>
   useSelector(browserNotificationsForDmsSelector);
+
+export const useMessageJumpTarget = () =>
+  useSelector(messageJumpTargetSelector);
+
+export const useVoiceChatSidebar = () =>
+  useSelector(voiceChatSidebarDataSelector);
