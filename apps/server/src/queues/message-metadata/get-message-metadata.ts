@@ -12,9 +12,7 @@ import { getLinkPreview } from 'link-preview-js';
 import { isIP } from 'net';
 import { db } from '../../db';
 import { messages } from '../../db/schema';
-import { getErrorMessage } from '../../helpers/get-error-message';
 import { isPrivateIP } from '../../helpers/network';
-import { logger } from '../../logger';
 
 const metadataCache = new Map<string, TGenericObject>();
 
@@ -160,8 +158,8 @@ const urlMetadataParser = async (
     const validMetadata = (metadata ?? []).filter((m) => !!m);
 
     return validMetadata ?? [];
-  } catch (error) {
-    logger.error('Error parsing URL metadata: %s', getErrorMessage(error));
+  } catch {
+    // ignore
   }
 
   return [];
