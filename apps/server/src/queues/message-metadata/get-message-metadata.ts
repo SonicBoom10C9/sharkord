@@ -56,11 +56,22 @@ const getDirectMediaMetaFromUrl = (
   return { isDirectMediaLink: false, mediaType: 'none' };
 };
 
+const sanitizeContent = (content: string): string => {
+  // do not attempt to parse custom emojis
+  const cleanedContent = content.replace(
+    /<img[^>]*class="emoji-image"[^>]*\/?>/gi,
+    ''
+  );
+
+  return cleanedContent;
+};
+
 const urlMetadataParser = async (
   content: string
 ): Promise<TMessageMetadata[]> => {
   try {
-    const urls = extractUrls(content);
+    const cleanContent = sanitizeContent(content);
+    const urls = extractUrls(cleanContent);
 
     if (!urls) return [];
 
