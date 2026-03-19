@@ -46,7 +46,7 @@
   "failedLoadPinnedMessages": "Impossible de charger les messages épinglés",
 
   "deleteFileTitle": "Supprimer le fichier",
-  "deleteFileMsg": "Êtes-vous sûr de vouloir supprimer ce fichier ?",
+  "deleteFileMsg": "Êtes-vous sûr de vouloir supprimer ce fichier?",
   "fileDeleted": "Fichier supprimé",
   "failedDeleteFile": "Échec lors de la suppression du fichier",
   "edited": "(modifié)",
