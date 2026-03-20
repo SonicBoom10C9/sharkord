@@ -38,7 +38,7 @@
   "pressEnterToSave": "Appuyez sur Entrée pour enregistrer, sur Échap pour annuler",
   "failedSendMessage": "Échec lors de l'envoi du message",
 
-  "pinnedBy": "Épingleé par {{name}}",
+  "pinnedBy": "Épinglé par {{name}}",
   "unknownTime": "Heure inconnue",
   "scrollToMessage": "Défiler jusqu'au message",
   "pinnedMessagesTitle": "Messages épinglés",
