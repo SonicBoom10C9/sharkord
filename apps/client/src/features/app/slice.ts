@@ -150,6 +150,7 @@ export const appSlice = createSlice({
       action: PayloadAction<string | undefined>
     ) => {
       state.activeFullscreenPluginId = action.payload;
+
       if (action.payload) {
         state.dmsOpen = false;
       }

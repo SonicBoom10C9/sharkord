@@ -5,7 +5,11 @@ import { cn, Tooltip } from '@sharkord/ui';
 import { PuzzleIcon, X } from 'lucide-react';
 import { memo, useCallback } from 'react';
 
-const PluginSidebarButton = memo(({ pluginId }: { pluginId: string }) => {
+type TPluginSidebarButtonProps = {
+  pluginId: string;
+};
+
+const PluginSidebarButton = memo(({ pluginId }: TPluginSidebarButtonProps) => {
   const activeFullscreenPluginId = useActiveFullscreenPluginId();
   const isActive = activeFullscreenPluginId === pluginId;
 
@@ -31,7 +35,7 @@ const PluginSidebarButton = memo(({ pluginId }: { pluginId: string }) => {
   );
 });
 
-export const PluginSidebarButtons = memo(() => {
+const PluginSidebarButtons = memo(() => {
   const sidebarPluginIds = useFullscreenPluginIds();
 
   if (sidebarPluginIds.length === 0) return null;
@@ -44,3 +48,5 @@ export const PluginSidebarButtons = memo(() => {
     </div>
   );
 });
+
+export { PluginSidebarButtons };
