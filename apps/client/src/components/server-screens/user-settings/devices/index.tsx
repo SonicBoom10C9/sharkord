@@ -51,6 +51,7 @@ import { useMicrophoneTest } from './hooks/use-microphone-test';
 import { useWebcamTest } from './hooks/use-webcam-test';
 import { MicrophoneTestLevelBar } from './microphone-test-level-bar';
 import ResolutionFpsControl from './resolution-fps-control';
+import { SupressionHelp } from './supression-help';
 
 const DEFAULT_NAME = 'default';
 
@@ -299,7 +300,11 @@ const Devices = memo(() => {
               </SelectContent>
             </Select>
 
-            <Group label="Noise suppression" className="my-4">
+            <Group
+              label={t('noiseSuppressionLabel')}
+              className="my-4"
+              help={<SupressionHelp />}
+            >
               <Select
                 value={values.noiseSuppression}
                 onValueChange={(value) =>
@@ -311,15 +316,17 @@ const Devices = memo(() => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value={NoiseSuppression.NONE}>None</SelectItem>
+                    <SelectItem value={NoiseSuppression.NONE}>
+                      {t('noiseSuppressionNone')}
+                    </SelectItem>
                     <SelectItem value={NoiseSuppression.STANDARD}>
-                      Standard
+                      {t('standard')}
                     </SelectItem>
                     <SelectItem value={NoiseSuppression.RNNOISE}>
-                      Advanced (RNNoise)
+                      RNNoise ({t('experimental')})
                     </SelectItem>
                     <SelectItem value={NoiseSuppression.DTLN}>
-                      Experimental (DTLN)
+                      DTLN ({t('experimental')})
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>

@@ -274,7 +274,9 @@ const useMicrophoneTest = ({
         ) {
           try {
             const chain = await createNsChain(noiseSuppression, stream);
+
             nsAudioContextsRef.current = chain.contexts;
+
             processedStream = new MediaStream([chain.outputTrack]);
           } catch (nsError) {
             console.error('Noise suppression failed:', nsError);
@@ -298,13 +300,17 @@ const useMicrophoneTest = ({
         if (needsMonoToStereo) {
           const splitter = audioContext.createChannelSplitter(2);
           const merger = audioContext.createChannelMerger(2);
+
           source.connect(splitter);
+
           splitter.connect(merger, 0, 0);
           splitter.connect(merger, 0, 1);
+
           source = merger;
         }
 
         const delay = audioContext.createDelay(1);
+
         let meterWorkletNode: AudioWorkletNode | null = null;
         let noiseGateWorkletNode: AudioWorkletNode | null = null;
         let analyser: AnalyserNode | null = null;
@@ -342,10 +348,9 @@ const useMicrophoneTest = ({
           );
         }
 
-        const shouldUseNoiseGateWorklet =
-          getNoiseGateWorkletAvailabilitySnapshot().available;
+        const { available } = getNoiseGateWorkletAvailabilitySnapshot();
 
-        if (shouldUseNoiseGateWorklet) {
+        if (available) {
           try {
             noiseGateWorkletNode = await createNoiseGateWorkletNode(
               audioContext,
@@ -361,6 +366,7 @@ const useMicrophoneTest = ({
               'Noise gate AudioWorklet unavailable for mic test:',
               error
             );
+
             markNoiseGateWorkletUnavailable(
               'Failed to initialize the noise gate audio processor.'
             );
@@ -417,9 +423,11 @@ const useMicrophoneTest = ({
         noiseGateWorkletNodeRef.current = noiseGateWorkletNode;
 
         setPermissionState('granted');
+
         if (analyser) {
           startAnalyserMeter(analyser);
         }
+
         setIsTesting(true);
 
         return true;
