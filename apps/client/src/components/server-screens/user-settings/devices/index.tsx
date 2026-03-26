@@ -10,7 +10,7 @@ import {
   subscribeNoiseGateWorkletAvailability
 } from '@/helpers/audio-worklet/noise-gate-worklet';
 import { useForm } from '@/hooks/use-form';
-import { Resolution, VideoCodec } from '@/types';
+import { NoiseSuppression, Resolution, VideoCodec } from '@/types';
 import { DEFAULT_BITRATE } from '@sharkord/shared';
 import {
   Alert,
@@ -74,6 +74,7 @@ const Devices = memo(() => {
     getNoiseGateWorkletAvailabilitySnapshot
   );
   const isNoiseGateAvailable = noiseGateWorkletAvailability.available;
+
   const {
     testAudioRef,
     permissionState,
@@ -88,7 +89,7 @@ const Devices = memo(() => {
     playbackId: values.playbackId,
     autoGainControl: !!values.autoGainControl,
     echoCancellation: !!values.echoCancellation,
-    noiseSuppression: !!values.noiseSuppression,
+    noiseSuppression: values.noiseSuppression,
     noiseGateEnabled: !!values.noiseGateEnabled,
     noiseGateThresholdDb:
       values.noiseGateThresholdDb ?? MICROPHONE_GATE_DEFAULT_THRESHOLD_DB
@@ -298,21 +299,39 @@ const Devices = memo(() => {
               </SelectContent>
             </Select>
 
+            <Group label="Noise suppression" className="my-4">
+              <Select
+                value={values.noiseSuppression}
+                onValueChange={(value) =>
+                  onChange('noiseSuppression', value as NoiseSuppression)
+                }
+              >
+                <SelectTrigger className="w-92">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={NoiseSuppression.NONE}>None</SelectItem>
+                    <SelectItem value={NoiseSuppression.STANDARD}>
+                      Standard
+                    </SelectItem>
+                    <SelectItem value={NoiseSuppression.RNNOISE}>
+                      Advanced (RNNoise)
+                    </SelectItem>
+                    <SelectItem value={NoiseSuppression.DTLN}>
+                      Experimental (DTLN)
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Group>
+
             <div className="flex items-center gap-4">
               <Group label={t('echoCancellationLabel')}>
                 <Switch
                   checked={!!values.echoCancellation}
                   onCheckedChange={(checked) =>
                     onChange('echoCancellation', checked)
-                  }
-                />
-              </Group>
-
-              <Group label={t('noiseSuppressionLabel')}>
-                <Switch
-                  checked={!!values.noiseSuppression}
-                  onCheckedChange={(checked) =>
-                    onChange('noiseSuppression', checked)
                   }
                 />
               </Group>
