@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { setInfo } from '../server/actions';
 import { store } from '../store';
 import {
+  pluginSlotDebugSelector,
   voiceChatChannelIdSelector,
   voiceChatSidebarDataSelector
 } from './selectors';
@@ -139,9 +140,6 @@ export const setAutoJoinLastChannel = (autoJoin: boolean) => {
   setLocalStorageItemBool(LocalStorageKey.AUTO_JOIN_LAST_CHANNEL, autoJoin);
 };
 
-export const setDmsOpen = (open: boolean) =>
-  store.dispatch(appSliceActions.setDmsOpen(open));
-
 export const setSelectedDmChannelId = (channelId: number | undefined) =>
   store.dispatch(appSliceActions.setSelectedDmChannelId(channelId));
 
@@ -236,4 +234,13 @@ export const assertVoiceChatClose = (channelId: number) => {
   if (isOpen && voiceChatChannelId === channelId) {
     closeVoiceChatSidebar();
   }
+};
+
+export const togglePluginSlotDebug = () => {
+  const state = store.getState();
+  const current = pluginSlotDebugSelector(state);
+  const next = !current;
+
+  store.dispatch(appSliceActions.setPluginSlotDebug(next));
+  setLocalStorageItemBool(LocalStorageKey.PLUGIN_SLOT_DEBUG, next);
 };

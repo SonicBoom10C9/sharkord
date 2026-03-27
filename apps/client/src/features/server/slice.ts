@@ -15,6 +15,7 @@ import type {
   TJoinedRole,
   TPluginComponentsMap,
   TPluginComponentsMapBySlotId,
+  TPluginMetadata,
   TPublicServerSettings,
   TReadStateMap,
   TServerInfo,
@@ -59,11 +60,14 @@ export interface IServerState {
   readStatesMap: {
     [channelId: number]: number | undefined;
   };
+  pluginsMetadata: TPluginMetadata[];
   pluginCommands: TCommandsMapByPlugin;
   hideNonVideoParticipants: boolean;
   showUserBannersInVoice: boolean;
   hideOwnScreenShare: boolean;
   pluginComponents: TPluginComponentsMap;
+  activeFullscreenPluginId: string | undefined;
+  dmsOpen: boolean;
 }
 
 const initialState: IServerState = {
@@ -97,6 +101,7 @@ const initialState: IServerState = {
   pinnedCard: undefined,
   channelPermissions: {},
   readStatesMap: {},
+  pluginsMetadata: [],
   pluginCommands: {},
   hideNonVideoParticipants: getLocalStorageItemBool(
     LocalStorageKey.HIDE_NON_VIDEO_PARTICIPANTS,
@@ -106,11 +111,13 @@ const initialState: IServerState = {
     LocalStorageKey.VOICE_CHAT_SHOW_USER_BANNERS,
     true
   ),
+  pluginComponents: {},
+  activeFullscreenPluginId: undefined,
+  dmsOpen: false,
   hideOwnScreenShare: getLocalStorageItemBool(
     LocalStorageKey.HIDE_OWN_SCREEN_SHARE,
     false
-  ),
-  pluginComponents: {}
+  )
 };
 
 export const serverSlice = createSlice({
@@ -160,6 +167,7 @@ export const serverSlice = createSlice({
         externalStreamsMap: TExternalStreamsMap;
         channelPermissions: TChannelUserPermissionsMap;
         readStates: TReadStateMap;
+        pluginsMetadata: TPluginMetadata[];
       }>
     ) => {
       state.connected = true;
@@ -175,6 +183,7 @@ export const serverSlice = createSlice({
       state.serverId = action.payload.serverId;
       state.channelPermissions = action.payload.channelPermissions;
       state.readStatesMap = action.payload.readStates;
+      state.pluginsMetadata = action.payload.pluginsMetadata;
     },
     addMessages: (
       state,
@@ -580,6 +589,7 @@ export const serverSlice = createSlice({
         // reset unread count on select
         // for now this is good enough
         state.readStatesMap[action.payload] = 0;
+        state.activeFullscreenPluginId = undefined;
       }
     },
     setCurrentVoiceChannelId: (
@@ -780,6 +790,9 @@ export const serverSlice = createSlice({
 
     // PLUGINS ------------------------------------------------------------
 
+    setPluginsMetadata: (state, action: PayloadAction<TPluginMetadata[]>) => {
+      state.pluginsMetadata = action.payload;
+    },
     setPluginCommands: (state, action: PayloadAction<TCommandsMapByPlugin>) => {
       state.pluginCommands = action.payload;
     },
@@ -833,6 +846,28 @@ export const serverSlice = createSlice({
       action: PayloadAction<TPluginComponentsMap>
     ) => {
       state.pluginComponents = action.payload;
+    },
+    setActiveFullscreenPluginId: (
+      state,
+      action: PayloadAction<string | undefined>
+    ) => {
+      state.activeFullscreenPluginId = action.payload;
+
+      if (action.payload) {
+        state.selectedChannelId = undefined;
+        state.dmsOpen = false;
+      }
+    },
+
+    // OTHERS ------------------------------------------------------------
+
+    setDmsOpen: (state, action: PayloadAction<boolean>) => {
+      state.dmsOpen = action.payload;
+
+      if (action.payload) {
+        state.selectedChannelId = undefined;
+        state.activeFullscreenPluginId = undefined;
+      }
     }
   }
 });

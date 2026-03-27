@@ -25,7 +25,6 @@ export enum ActivityLogType {
   UPDATED_CHANNEL = 'UPDATED_CHANNEL',
   UPDATED_CHANNEL_PERMISSIONS = 'UPDATED_CHANNEL_PERMISSIONS',
   DELETED_CHANNEL_PERMISSIONS = 'DELETED_CHANNEL_PERMISSIONS',
-  ROTATE_CHANNEL_FILE_ACCESS_TOKEN = 'ROTATE_CHANNEL_FILE_ACCESS_TOKEN',
   // -------------------- INVITES --------------------
   CREATED_INVITE = 'CREATED_INVITE',
   DELETED_INVITE = 'DELETED_INVITE',
@@ -40,6 +39,7 @@ export enum ActivityLogType {
   UPDATED_CATEGORY = 'UPDATED_CATEGORY',
   // -------------------- PLUGINS --------------------
   EXECUTED_PLUGIN_COMMAND = 'EXECUTED_PLUGIN_COMMAND',
+  EXECUTED_PLUGIN_ACTION = 'EXECUTED_PLUGIN_ACTION',
   PLUGIN_TOGGLED = 'PLUGIN_TOGGLED',
   // -------------------- MESSAGES --------------------
   TOGGLED_MESSAGE_PIN = 'TOGGLED_MESSAGE_PIN'
@@ -125,9 +125,6 @@ export type TActivityLogDetailsMap = {
     targetUserId?: number;
     targetRoleId?: number;
   };
-  [ActivityLogType.ROTATE_CHANNEL_FILE_ACCESS_TOKEN]: {
-    channelId: number;
-  };
   // -------------------- INVITES --------------------
   [ActivityLogType.CREATED_INVITE]: {
     code: string;
@@ -172,6 +169,11 @@ export type TActivityLogDetailsMap = {
     pluginId: string;
     commandName: string;
     args: Record<string, any>;
+  };
+  [ActivityLogType.EXECUTED_PLUGIN_ACTION]: {
+    pluginId: string;
+    actionName: string;
+    payload: unknown;
   };
   [ActivityLogType.PLUGIN_TOGGLED]: {
     pluginId: string;

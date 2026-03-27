@@ -7,8 +7,7 @@ import {
   channelPermissionsSelector,
   channelReadStateByIdSelector,
   channelsByCategoryIdSelector,
-  currentVoiceChannelIdSelector,
-  selectedChannelIdSelector
+  currentVoiceChannelIdSelector
 } from './channels/selectors';
 import {
   messagesByChannelIdSelector,
@@ -46,6 +45,11 @@ export const pluginsEnabledSelector = (state: IRootState) =>
   !!state.server.publicSettings?.enablePlugins;
 
 export const infoSelector = (state: IRootState) => state.server.info;
+
+export const activeFullscreenPluginIdSelector = (state: IRootState) =>
+  state.server.activeFullscreenPluginId;
+
+export const dmsOpenSelector = (state: IRootState) => state.server.dmsOpen;
 
 export const ownUserRolesSelector = createSelector(
   [ownUserSelector, rolesSelector],
@@ -174,15 +178,6 @@ export const ownVoiceUserSelector = createSelector(
   ],
   (ownUserId, voiceUsers) =>
     voiceUsers?.find((voiceUser) => voiceUser.id === ownUserId)
-);
-
-export const pluginComponentContextSelector = createSelector(
-  [usersSelector, selectedChannelIdSelector, currentVoiceChannelIdSelector],
-  (users, selectedChannelId, currentVoiceChannelId) => ({
-    users,
-    selectedChannelId,
-    currentVoiceChannelId
-  })
 );
 
 // this approach has some limitations but it should work for most cases

@@ -140,6 +140,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test message'
       });
 
@@ -148,6 +149,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test message'
       });
     });
@@ -163,6 +165,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -179,6 +182,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -190,6 +194,7 @@ describe('event-bus', () => {
         messageId: 2,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test2'
       });
 
@@ -217,6 +222,7 @@ describe('event-bus', () => {
           messageId: 1,
           channelId: 2,
           userId: 3,
+          pluginId: null,
           content: 'test'
         })
       ).resolves.toBeUndefined();
@@ -235,6 +241,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -253,6 +260,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -268,6 +276,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -279,6 +288,7 @@ describe('event-bus', () => {
         messageId: 2,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test2'
       });
 
@@ -321,6 +331,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -334,6 +345,7 @@ describe('event-bus', () => {
         messageId: 2,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test2'
       });
 
@@ -356,6 +368,7 @@ describe('event-bus', () => {
         messageId: 1,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test'
       });
 
@@ -370,11 +383,183 @@ describe('event-bus', () => {
         messageId: 2,
         channelId: 2,
         userId: 3,
+        pluginId: null,
         content: 'test2'
       });
 
       expect(plugin1Handler1).toHaveBeenCalledTimes(1);
       expect(plugin2Handler1).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('register() return value (unsubscribe)', () => {
+    test('register() returns a function that removes the handler', async () => {
+      const handler = mock(() => {});
+
+      const unsubscribe = eventBus.register(
+        'plugin1',
+        'message:created',
+        handler
+      );
+
+      await eventBus.emit('message:created', {
+        messageId: 1,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test'
+      });
+
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+
+      await eventBus.emit('message:created', {
+        messageId: 2,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test2'
+      });
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    test('unsubscribing one handler does not remove other handlers for same plugin', async () => {
+      const handler1 = mock(() => {});
+      const handler2 = mock(() => {});
+
+      const unsubscribe1 = eventBus.register(
+        'plugin1',
+        'message:created',
+        handler1
+      );
+      eventBus.register('plugin1', 'message:created', handler2);
+
+      unsubscribe1();
+
+      await eventBus.emit('message:created', {
+        messageId: 1,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test'
+      });
+
+      expect(handler1).toHaveBeenCalledTimes(0);
+      expect(handler2).toHaveBeenCalledTimes(1);
+    });
+
+    test('unsubscribing via return value removes plugin entry when no more handlers', () => {
+      const handler = mock(() => {});
+
+      const unsubscribe = eventBus.register(
+        'plugin1',
+        'message:created',
+        handler
+      );
+
+      expect(eventBus.hasPlugin('plugin1')).toBe(true);
+
+      unsubscribe();
+
+      expect(eventBus.hasPlugin('plugin1')).toBe(false);
+    });
+  });
+
+  describe('on() return value (unsubscribe)', () => {
+    test('on() returns a function that removes the handler', async () => {
+      const handler = mock(() => {});
+
+      const unsubscribe = eventBus.on('message:created', handler);
+
+      await eventBus.emit('message:created', {
+        messageId: 1,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test'
+      });
+
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+
+      await eventBus.emit('message:created', {
+        messageId: 2,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test2'
+      });
+
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('unregister()', () => {
+    test('should remove a specific handler for a plugin', async () => {
+      const handler1 = mock(() => {});
+      const handler2 = mock(() => {});
+
+      eventBus.register('plugin1', 'message:created', handler1);
+      eventBus.register('plugin1', 'message:created', handler2);
+
+      eventBus.unregister('plugin1', 'message:created', handler1);
+
+      await eventBus.emit('message:created', {
+        messageId: 1,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test'
+      });
+
+      expect(handler1).toHaveBeenCalledTimes(0);
+      expect(handler2).toHaveBeenCalledTimes(1);
+    });
+
+    test('should clean up empty event maps when last handler is unregistered', () => {
+      const handler = mock(() => {});
+
+      eventBus.register('plugin1', 'message:created', handler);
+      expect(eventBus.getListenersCount('message:created')).toBe(1);
+      expect(eventBus.hasPlugin('plugin1')).toBe(true);
+
+      eventBus.unregister('plugin1', 'message:created', handler);
+
+      expect(eventBus.getListenersCount('message:created')).toBe(0);
+      expect(eventBus.hasPlugin('plugin1')).toBe(false);
+    });
+
+    test('should handle unregistering a handler that was never registered', () => {
+      const handler = mock(() => {});
+
+      expect(() => {
+        eventBus.unregister('plugin1', 'message:created', handler);
+      }).not.toThrow();
+    });
+
+    test('should not remove other plugin handlers when unregistering', async () => {
+      const handler1 = mock(() => {});
+      const handler2 = mock(() => {});
+
+      eventBus.register('plugin1', 'message:created', handler1);
+      eventBus.register('plugin2', 'message:created', handler2);
+
+      eventBus.unregister('plugin1', 'message:created', handler1);
+
+      await eventBus.emit('message:created', {
+        messageId: 1,
+        channelId: 2,
+        userId: 3,
+        pluginId: null,
+        content: 'test'
+      });
+
+      expect(handler1).toHaveBeenCalledTimes(0);
+      expect(handler2).toHaveBeenCalledTimes(1);
+      expect(eventBus.hasPlugin('plugin2')).toBe(true);
     });
   });
 });

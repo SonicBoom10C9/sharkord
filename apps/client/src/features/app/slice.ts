@@ -17,7 +17,6 @@ export interface TAppState {
   threadParentMessageId: number | undefined;
   threadChannelId: number | undefined;
   autoJoinLastChannel: boolean;
-  dmsOpen: boolean;
   selectedDmChannelId: number | undefined;
   browserNotifications: boolean;
   browserNotificationsForMentions: boolean;
@@ -25,6 +24,7 @@ export interface TAppState {
   messageJumpTarget: TMessageJumpToTarget | undefined;
   voiceChatSidebarOpen: boolean;
   voiceChatChannelId: number | undefined;
+  pluginSlotDebug: boolean;
 }
 
 const initialState: TAppState = {
@@ -41,7 +41,6 @@ const initialState: TAppState = {
     LocalStorageKey.AUTO_JOIN_LAST_CHANNEL,
     false
   ),
-  dmsOpen: false,
   selectedDmChannelId: undefined,
   browserNotifications: getLocalStorageItemBool(
     LocalStorageKey.BROWSER_NOTIFICATIONS,
@@ -62,6 +61,10 @@ const initialState: TAppState = {
   ),
   voiceChatChannelId: getLocalStorageItemAsNumber(
     LocalStorageKey.VOICE_CHAT_SIDEBAR_CHANNEL_ID
+  ),
+  pluginSlotDebug: getLocalStorageItemBool(
+    LocalStorageKey.PLUGIN_SLOT_DEBUG,
+    false
   )
 };
 
@@ -106,9 +109,6 @@ export const appSlice = createSlice({
     setIsAutoConnecting: (state, action: PayloadAction<boolean>) => {
       state.isAutoConnecting = action.payload;
     },
-    setDmsOpen: (state, action: PayloadAction<boolean>) => {
-      state.dmsOpen = action.payload;
-    },
     setSelectedDmChannelId: (
       state,
       action: PayloadAction<number | undefined>
@@ -142,6 +142,9 @@ export const appSlice = createSlice({
     ) => {
       state.voiceChatSidebarOpen = action.payload.open;
       state.voiceChatChannelId = action.payload.channelId;
+    },
+    setPluginSlotDebug: (state, action: PayloadAction<boolean>) => {
+      state.pluginSlotDebug = action.payload;
     }
   }
 });

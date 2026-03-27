@@ -2,7 +2,6 @@ import {
   browserNotificationsForDmsSelector,
   browserNotificationsForMentionsSelector,
   browserNotificationsSelector,
-  dmsOpenSelector,
   selectedDmChannelIdSelector,
   threadSidebarDataSelector
 } from '@/features/app/selectors';
@@ -19,6 +18,8 @@ import {
   channelByIdSelector,
   selectedChannelIdSelector
 } from '../channels/selectors';
+import { pluginMetadataByIdSelector } from '../plugins/selectors';
+import { dmsOpenSelector } from '../selectors';
 import { serverSliceActions } from '../slice';
 import { playSound } from '../sounds/actions';
 import { SoundType } from '../types';
@@ -37,17 +38,21 @@ const sendBrowserNotification = (
   const state = store.getState();
 
   const user = userByIdSelector(state, message.userId);
+  const plugin = pluginMetadataByIdSelector(state, message.pluginId);
   const channel = channelByIdSelector(state, channelId);
+  const isPluginMessage = !!message.pluginId;
 
   if (!user || !channel) {
     return;
   }
 
+  const authorName = isPluginMessage && plugin ? plugin.name : user.name;
   const textContent = getPlainTextFromHtml(message.content ?? '');
 
   const title = isDm
-    ? `${user?.name ?? 'Unknown'} (DM)`
-    : `${user?.name ?? 'Unknown'} in #${channel?.name ?? 'unknown'}`;
+    ? `${authorName} (DM)`
+    : `${authorName} in #${channel?.name ?? 'unknown'}`;
+
   const body = textContent ? textContent : 'Sent an attachment';
   const icon = user?.avatar ? getFileUrl(user.avatar) : undefined;
 
@@ -105,11 +110,13 @@ export const addMessages = (
   }
 
   rootMessages.forEach((message) => {
-    removeTypingUser(channelId, message.userId);
+    if (message.userId) {
+      removeTypingUser(channelId, message.userId);
+    }
   });
 
   threadReplies.forEach((message) => {
-    if (message.parentMessageId) {
+    if (message.parentMessageId && message.userId) {
       removeThreadTypingUser(message.parentMessageId, message.userId);
     }
   });
@@ -122,11 +129,14 @@ export const addMessages = (
       browserNotificationsForMentionsSelector(state);
     const dmsOpen = dmsOpenSelector(state);
     const targetMessage = messages[0];
-    const isFromOwnUser = ownUserId === targetMessage.userId;
+    const isFromOwnUser =
+      targetMessage.userId && ownUserId === targetMessage.userId;
 
     const isTextChannelSelected = selectedChannelId === channelId;
     const isDmChannelSelected = selectedDmChannelId === channelId && dmsOpen; // only consider DM channel selected if DMs are open
     const isChannelSelected = isTextChannelSelected || isDmChannelSelected;
+
+    const isWindowHidden = document?.hidden;
 
     if (!isFromOwnUser) {
       const isThreadReply = !!targetMessage.parentMessageId;
@@ -143,7 +153,7 @@ export const addMessages = (
       }
 
       // only send browser notifications if the user is not currently viewing this channel
-      if (!isChannelSelected) {
+      if (!isChannelSelected || isWindowHidden) {
         const channel = channelByIdSelector(state, channelId);
         const isDmChannel = !!channel?.isDm;
         const hasDmNotificationsEnabled =
