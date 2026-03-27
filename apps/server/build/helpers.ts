@@ -18,7 +18,7 @@ const sharedPckJson = path.join(rootCwd, 'packages', 'shared', 'package.json');
 const e2ePckJson = path.join(rootCwd, 'packages', 'e2e', 'package.json');
 const pluginSdkPckJson = path.join(
   rootCwd,
-  'apps',
+  'packages',
   'plugin-sdk',
   'package.json'
 );
