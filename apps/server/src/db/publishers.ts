@@ -248,16 +248,14 @@ const publishChannelPermissions = async (affectedUserIds: number[]) => {
   }
 };
 
-const publishPluginCommands = async () => {
+const publishPlugins = async () => {
   const commands = pluginManager.getCommands();
+  const pluginIds = pluginManager.getPluginIdsWithComponents();
+  const metadata = await pluginManager.getActivePluginMetadata();
 
   pubsub.publish(ServerEvents.PLUGIN_COMMANDS_CHANGE, commands);
-};
-
-const publishPluginComponents = async () => {
-  const pluginIds = pluginManager.getPluginIdsWithComponents();
-
   pubsub.publish(ServerEvents.PLUGIN_COMPONENTS_CHANGE, pluginIds);
+  pubsub.publish(ServerEvents.PLUGIN_METADATA_CHANGE, metadata);
 };
 
 const publishReplyCount = async (
@@ -287,8 +285,7 @@ export {
   publishChannelPermissions,
   publishEmoji,
   publishMessage,
-  publishPluginCommands,
-  publishPluginComponents,
+  publishPlugins,
   publishReplyCount,
   publishRole,
   publishSettings,

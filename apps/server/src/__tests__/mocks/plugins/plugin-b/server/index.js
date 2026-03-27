@@ -14,7 +14,7 @@ const onLoad = (ctx) => {
         required: true
       }
     ],
-    async executes(invokerCtx, args) {
+    async execute(invokerCtx, args) {
       ctx.log('Executing test-command with:', args);
       return { success: true, message: args.message };
     }
@@ -35,8 +35,16 @@ const onLoad = (ctx) => {
         required: true
       }
     ],
-    async executes(invokerCtx, args) {
+    async execute(invokerCtx, args) {
       return { result: args.a + args.b };
+    }
+  });
+
+  ctx.actions.register({
+    name: 'multiply',
+    description: 'Multiply two numbers',
+    async execute(invokerCtx, payload) {
+      return { result: payload.a * payload.b };
     }
   });
 };

@@ -1,37 +1,44 @@
 import z from 'zod';
-import type { TJoinedPublicUser } from './tables';
 
-export const zPluginPackageJson = z.object({
+export const zPluginId = z
+  .string()
+  .min(1, 'Plugin ID is required')
+  .regex(
+    /^[a-z0-9-]+$/,
+    'Plugin ID must contain only lowercase letters, numbers, and dashes'
+  );
+
+export const zPluginManifest = z.object({
+  id: zPluginId,
+  name: z.string().min(1, 'Plugin name is required'),
+  author: z.string().min(1, 'Plugin author is required'),
+  description: z.string().min(1, 'Plugin description is required'),
+  homepage: z.url().optional(),
+  logo: z.url().optional(),
+  sdkVersion: z.number().int().nonnegative(),
   version: z
     .string()
-    .regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?$/, 'Invalid version format'),
-  name: z.string().min(1, 'Package name is required'),
-  sharkord: z.object({
-    entry: z.object({
-      server: z.string().min(1, 'Server entry point is required'),
-      client: z.string().min(1, 'Client entry point is required')
-    }),
-    author: z.string().min(1, 'Plugin author is required'),
-    homepage: z.url().optional(),
-    description: z.string().min(1, 'Plugin description is required'),
-    logo: z.string().optional()
-  })
+    .regex(/^\d+\.\d+\.\d+(-[a-zA-Z0-9-.]+)?$/, 'Invalid version format')
 });
 
-export type TPluginPackageJson = z.infer<typeof zPluginPackageJson>;
+export type TPluginManifest = z.infer<typeof zPluginManifest>;
+
+export const zPluginPackageJson = zPluginManifest;
+
+export type TPluginPackageJson = TPluginManifest;
 
 export type TPluginInfo = {
   id: string;
   enabled: boolean;
   loadError?: string;
-  author: TPluginPackageJson['sharkord']['author'];
-  description: TPluginPackageJson['sharkord']['description'];
-  version: TPluginPackageJson['version'];
-  logo: TPluginPackageJson['sharkord']['logo'];
-  name: TPluginPackageJson['name'];
-  homepage: TPluginPackageJson['sharkord']['homepage'];
+  sdkVersion: TPluginManifest['sdkVersion'];
+  author: TPluginManifest['author'];
+  description: TPluginManifest['description'];
+  version: TPluginManifest['version'];
+  logo: TPluginManifest['logo'];
+  name: TPluginManifest['name'];
+  homepage: TPluginManifest['homepage'];
   path: string;
-  entry: TPluginPackageJson['sharkord']['entry'];
 };
 
 export type TLogEntry = {
@@ -54,11 +61,22 @@ export type TInvokerContext = {
   currentVoiceChannelId?: number;
 };
 
+export type TCommandContract = Record<
+  string,
+  { args: unknown; response: unknown }
+>;
+
 export interface CommandDefinition<TArgs = void> {
   name: string;
   description?: string;
   args?: TCommandArg[];
-  executes(ctx: TInvokerContext, args: TArgs): Promise<unknown>;
+  execute(ctx: TInvokerContext, args: TArgs): Promise<unknown>;
+}
+
+export interface ActionDefinition<TPayload = void> {
+  name: string;
+  description?: string;
+  execute: (ctx: TInvokerContext, payload: TPayload) => Promise<unknown>;
 }
 
 export type TPluginCommand = {
@@ -86,8 +104,15 @@ export type RegisteredCommand = {
   command: CommandDefinition<unknown>;
 };
 
+export type RegisteredAction = {
+  pluginId: string;
+  name: string;
+  description?: string;
+  action: ActionDefinition<unknown>;
+};
+
 export const zParsedDomCommand = z.object({
-  pluginId: z.string().min(1),
+  pluginId: zPluginId,
   commandName: z.string().min(1),
   status: z.enum(['pending', 'completed', 'failed']).default('pending'),
   response: z.string().optional(),
@@ -140,7 +165,7 @@ export type TPluginComponentsMapBySlotIdMapListByPlugin = {
   [pluginId: string]: PluginSlot[];
 };
 
-export type TPluginReactComponent = React.ComponentType<TPluginSlotContext>;
+export type TPluginReactComponent = React.ComponentType;
 
 export type TPluginComponentsMapBySlotId = {
   [slot in PluginSlot]?: TPluginReactComponent[];
@@ -155,9 +180,18 @@ export type TPluginComponentsMap = {
   [pluginId: string]: TPluginComponentsMapBySlotId;
 };
 
-export type TPluginSlotContext = {
-  users: TJoinedPublicUser[];
-  selectedChannelId: number | undefined;
-  currentVoiceChannelId: number | undefined;
-  sendMessage: (channelId: number, content: string) => void;
+export type TPluginMetadata = {
+  pluginId: string;
+  name: string;
+  description: string;
+  avatarUrl?: string;
 };
+
+export const PLUGIN_SDK_VERSION = 1;
+
+export const SERVER_ENTRY_FILE = 'server/index.js';
+export const CLIENT_ENTRY_FILE = 'client/index.js';
+
+export * from './client-sdk';
+export * from './hooks';
+export * from './marketplace';
