@@ -2,7 +2,6 @@ import { PluginAvatar } from '@/components/plugin-avatar';
 import { useThreadSidebar } from '@/features/app/hooks';
 import { useParentMessage } from '@/features/server/messages/hooks';
 import { usePluginMetadata } from '@/features/server/plugins/hooks';
-import { useUserById } from '@/features/server/users/hooks';
 import type { TJoinedMessage } from '@sharkord/shared';
 import { Spinner } from '@sharkord/ui';
 import { memo } from 'react';
@@ -17,13 +16,8 @@ type TParentMessageContentProps = {
 const ParentMessageContent = memo(
   ({ parentMessage }: TParentMessageContentProps) => {
     const pluginMetadata = usePluginMetadata(parentMessage.pluginId);
-    const user = useUserById(parentMessage.userId);
     const isPluginMessage = !!parentMessage.pluginId;
     const authorName = useMessageAuthorName(parentMessage);
-
-    if (!pluginMetadata && !user) {
-      return null;
-    }
 
     return (
       <div className="px-4 py-3 border-b border-border bg-secondary/30 max-h-64 overflow-auto">
@@ -36,7 +30,7 @@ const ParentMessageContent = memo(
             />
           ) : (
             <UserAvatar
-              userId={parentMessage.userId!}
+              userId={parentMessage.userId}
               className="h-8 w-8"
               showUserPopover
             />
