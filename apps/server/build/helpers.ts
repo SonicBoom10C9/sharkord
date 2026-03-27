@@ -23,7 +23,12 @@ const pluginSdkPckJson = path.join(
   'package.json'
 );
 const uiPckJson = path.join(rootCwd, 'packages', 'ui', 'package.json');
-const scriptsPckJson = path.join(rootCwd, 'scripts', 'package.json');
+const scriptsPckJson = path.join(
+  rootCwd,
+  'packages',
+  'scripts',
+  'package.json'
+);
 
 const unpack = async (tgzPath: string, outDir: string) => {
   const tarProc = Bun.spawn(['tar', '-xzf', tgzPath, '-C', outDir], {
