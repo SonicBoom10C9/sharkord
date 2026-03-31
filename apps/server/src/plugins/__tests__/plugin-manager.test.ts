@@ -1,4 +1,4 @@
-import { type TInvokerContext } from '@sharkord/shared';
+import { FileSaveType, type TInvokerContext } from '@sharkord/shared';
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { eq } from 'drizzle-orm';
 import fs from 'fs/promises';
@@ -6,9 +6,11 @@ import path from 'path';
 import { pluginManager } from '..';
 import { loadMockedPlugins, resetPluginMocks } from '../../__tests__/mocks';
 import { tdb } from '../../__tests__/setup';
-import { pluginData, settings } from '../../db/schema';
-import { PLUGINS_PATH } from '../../helpers/paths';
+import { messages, pluginData, settings } from '../../db/schema';
+import { PLUGINS_PATH, PUBLIC_PATH, UPLOADS_PATH } from '../../helpers/paths';
+import { fileManager } from '../../utils/file-manager';
 import { eventBus } from '../event-bus';
+import { withTimeout } from '../execution-timeout';
 
 describe('plugin-manager', () => {
   beforeAll(loadMockedPlugins);
@@ -88,7 +90,7 @@ describe('plugin-manager', () => {
       );
     });
 
-    test('should handle plugin with invalid package.json', async () => {
+    test('should handle plugin with invalid manifest.json', async () => {
       await expect(
         pluginManager.getPluginInfo('plugin-invalid-package')
       ).rejects.toThrow();
@@ -97,7 +99,13 @@ describe('plugin-manager', () => {
     test('should handle plugin with missing entry file', async () => {
       await expect(
         pluginManager.getPluginInfo('plugin-missing-entry')
-      ).rejects.toThrow('Plugin entry file not found');
+      ).rejects.toThrow('Plugin server entry file not found');
+    });
+
+    test('should handle plugin with missing client entry file', async () => {
+      await expect(
+        pluginManager.getPluginInfo('plugin-missing-client-entry')
+      ).rejects.toThrow('Plugin client entry file not found');
     });
 
     test('should load plugin without onUnload', async () => {
@@ -107,6 +115,34 @@ describe('plugin-manager', () => {
       const info = await pluginManager.getPluginInfo('plugin-no-unload');
 
       expect(info.loadError).toBeUndefined();
+    });
+
+    test('should fail to load plugin missing sdk version', async () => {
+      await pluginManager.togglePlugin('plugin-no-sdk-version', true);
+
+      await expect(pluginManager.load('plugin-no-sdk-version')).rejects.toThrow(
+        'Invalid manifest.json'
+      );
+    });
+
+    test('should fail to load plugin with invalid sdk version', async () => {
+      await pluginManager.togglePlugin('plugin-invalid-sdk-version', true);
+
+      await expect(
+        pluginManager.load('plugin-invalid-sdk-version')
+      ).rejects.toThrow('Invalid manifest.json');
+    });
+
+    test('should fail to load plugin with incompatible sdk version', async () => {
+      await pluginManager.togglePlugin('plugin-incompatible-sdk-version', true);
+      await pluginManager.load('plugin-incompatible-sdk-version');
+
+      const info = await pluginManager.getPluginInfo(
+        'plugin-incompatible-sdk-version'
+      );
+
+      expect(info.loadError).toBeDefined();
+      expect(info.loadError).toContain('not compatible');
     });
   });
 
@@ -140,6 +176,16 @@ describe('plugin-manager', () => {
       await pluginManager.unload('plugin-b');
 
       expect(pluginManager.hasCommand('plugin-b', 'test-command')).toBe(false);
+    });
+
+    test('should unregister actions on unload', async () => {
+      await pluginManager.load('plugin-b');
+
+      expect(pluginManager.hasAction('plugin-b', 'multiply')).toBe(true);
+
+      await pluginManager.unload('plugin-b');
+
+      expect(pluginManager.hasAction('plugin-b', 'multiply')).toBe(false);
     });
 
     test('should unload plugin without onUnload gracefully', async () => {
@@ -207,7 +253,7 @@ describe('plugin-manager', () => {
           mockInvokerCtx,
           {}
         )
-      ).rejects.toThrow('has no registered commands');
+      ).rejects.toThrow('has no registered command');
     });
 
     test('should throw error when command does not exist', async () => {
@@ -241,6 +287,47 @@ describe('plugin-manager', () => {
       expect(pluginManager.hasCommand('plugin-b', 'sum')).toBe(true);
       expect(pluginManager.hasCommand('plugin-b', 'nonexistent')).toBe(false);
       expect(pluginManager.hasCommand('nonexistent-plugin', 'sum')).toBe(false);
+    });
+  });
+
+  describe('actions', () => {
+    test('should execute action successfully', async () => {
+      await pluginManager.load('plugin-b');
+
+      const result = await pluginManager.executeAction(
+        'plugin-b',
+        'multiply',
+        mockInvokerCtx,
+        {
+          a: 6,
+          b: 7
+        }
+      );
+
+      expect(result).toEqual({ result: 42 });
+    });
+
+    test('should check if plugin has specific action', async () => {
+      await pluginManager.load('plugin-b');
+
+      expect(pluginManager.hasAction('plugin-b', 'multiply')).toBe(true);
+      expect(pluginManager.hasAction('plugin-b', 'nonexistent')).toBe(false);
+      expect(pluginManager.hasAction('nonexistent-plugin', 'multiply')).toBe(
+        false
+      );
+    });
+
+    test('should throw error when action does not exist', async () => {
+      await pluginManager.load('plugin-b');
+
+      await expect(
+        pluginManager.executeAction(
+          'plugin-b',
+          'nonexistent',
+          mockInvokerCtx,
+          {}
+        )
+      ).rejects.toThrow('not found');
     });
   });
 
@@ -337,7 +424,7 @@ describe('plugin-manager', () => {
     test('should throw error for non-existent plugin', async () => {
       await expect(
         pluginManager.getPluginInfo('nonexistent-plugin')
-      ).rejects.toThrow('package.json not found');
+      ).rejects.toThrow('manifest.json not found');
     });
   });
 
@@ -559,9 +646,6 @@ describe('plugin-manager', () => {
       // get-counts doesn't throw, but the error path is covered
       // by the 'command not found' and 'plugin not enabled' tests.
       // Let's verify error logging when executeCommand hits an error.
-      const logs = pluginManager.getLogs('plugin-b');
-      const initialLogCount = logs.length;
-
       // Execute a valid command to verify debug logging
       await pluginManager.executeCommand('plugin-b', 'sum', mockInvokerCtx, {
         a: 1,
@@ -570,7 +654,7 @@ describe('plugin-manager', () => {
 
       const logsAfter = pluginManager.getLogs('plugin-b');
       const hasDebugLog = logsAfter
-        .slice(initialLogCount)
+        .slice(-20)
         .some(
           (log) =>
             log.type === 'debug' && log.message.includes('Executing command')
@@ -621,6 +705,38 @@ describe('plugin-manager', () => {
       await expect(pluginManager.getPluginInfo('foo\0bar')).rejects.toThrow(
         'Invalid plugin ID'
       );
+    });
+
+    test('should reject plugin ID with uppercase letters', async () => {
+      await expect(pluginManager.getPluginInfo('Plugin-A')).rejects.toThrow(
+        'Invalid plugin ID'
+      );
+    });
+
+    test('should reject plugin ID with underscores', async () => {
+      await expect(pluginManager.getPluginInfo('plugin_a')).rejects.toThrow(
+        'Invalid plugin ID'
+      );
+    });
+
+    test('should reject empty plugin ID', async () => {
+      await expect(pluginManager.getPluginInfo('')).rejects.toThrow(
+        'Invalid plugin ID'
+      );
+    });
+
+    test('should accept valid lowercase-and-dashes plugin ID', async () => {
+      await expect(
+        pluginManager.getPluginInfo('valid-id-123')
+      ).rejects.not.toThrow('Invalid plugin ID');
+    });
+  });
+
+  describe('manifest ID mismatch', () => {
+    test('should throw when manifest.id does not match plugin directory name', async () => {
+      await expect(
+        pluginManager.getPluginInfo('plugin-mismatched-id')
+      ).rejects.toThrow('must match plugin directory');
     });
   });
 
@@ -787,6 +903,7 @@ describe('plugin-manager', () => {
         messageId: 1,
         channelId: 1,
         userId: 1,
+        pluginId: null,
         content: 'test message'
       });
 
@@ -809,6 +926,7 @@ describe('plugin-manager', () => {
         messageId: 1,
         channelId: 1,
         userId: 1,
+        pluginId: null,
         content: 'test'
       });
 
@@ -829,11 +947,139 @@ describe('plugin-manager', () => {
         messageId: 2,
         channelId: 1,
         userId: 1,
+        pluginId: null,
         content: 'test2'
       });
 
       // since the plugin is unloaded, we can't query it, but we can verify
       // the event bus no longer has handlers for this plugin
+      expect(eventBus.hasPlugin('plugin-with-events')).toBe(false);
+    });
+  });
+
+  describe('beforeFileSave hooks integration', () => {
+    test('should allow plugins to modify file contents before saving', async () => {
+      await pluginManager.load('plugin-before-file-save');
+
+      const fileName = `plugin-hook-${Date.now()}.txt`;
+      const sourcePath = path.join(UPLOADS_PATH, fileName);
+      await fs.writeFile(sourcePath, 'original content');
+      const stats = await fs.stat(sourcePath);
+
+      const tempFile = await fileManager.addTemporaryFile({
+        filePath: sourcePath,
+        size: stats.size,
+        originalName: fileName,
+        userId: 1
+      });
+
+      const saved = await fileManager.saveFile(
+        tempFile.id,
+        1,
+        FileSaveType.MESSAGE
+      );
+
+      const savedPath = path.join(PUBLIC_PATH, saved.name);
+      const savedContent = await fs.readFile(savedPath, 'utf-8');
+
+      expect(savedContent).toBe('original content\nmodified by plugin');
+
+      await fs.unlink(savedPath);
+    });
+  });
+
+  describe('messages actions', () => {
+    test('should let plugin edit its own message', async () => {
+      await pluginManager.load('plugin-message-actions');
+
+      const { messageId } = (await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'send-message',
+        mockInvokerCtx,
+        {
+          channelId: 1,
+          content: 'plugin original'
+        }
+      )) as { messageId: number };
+
+      await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'edit-message',
+        mockInvokerCtx,
+        {
+          messageId,
+          content: 'plugin edited'
+        }
+      );
+
+      const updated = await tdb
+        .select({ content: messages.content })
+        .from(messages)
+        .where(eq(messages.id, messageId))
+        .get();
+
+      expect(updated?.content).toBe('plugin edited');
+    });
+
+    test('should let plugin delete its own message', async () => {
+      await pluginManager.load('plugin-message-actions');
+
+      const { messageId } = (await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'send-message',
+        mockInvokerCtx,
+        {
+          channelId: 1,
+          content: 'plugin delete me'
+        }
+      )) as { messageId: number };
+
+      await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'delete-message',
+        mockInvokerCtx,
+        { messageId }
+      );
+
+      const deleted = await tdb
+        .select({ id: messages.id })
+        .from(messages)
+        .where(eq(messages.id, messageId))
+        .get();
+
+      expect(deleted).toBeUndefined();
+    });
+  });
+
+  describe('execution timeout', () => {
+    test('should resolve before timeout when execution completes', async () => {
+      const result = await withTimeout(
+        Promise.resolve('done'),
+        1000,
+        'should not timeout'
+      );
+
+      expect(result).toBe('done');
+    });
+  });
+
+  describe('ctx.events unsubscribe', () => {
+    test('ctx.events.on() returns an unsubscribe function that stops events', async () => {
+      await pluginManager.load('plugin-with-events');
+
+      await eventBus.emit('user:joined', { userId: 1, username: 'alice' });
+
+      const result1 = (await pluginManager.executeCommand(
+        'plugin-with-events',
+        'get-counts',
+        mockInvokerCtx,
+        {}
+      )) as Record<string, number>;
+
+      expect(result1.userJoined).toBe(1);
+
+      await pluginManager.unload('plugin-with-events');
+
       expect(eventBus.hasPlugin('plugin-with-events')).toBe(false);
     });
   });

@@ -1,6 +1,7 @@
 import {
   ActivityLogType,
   ChannelPermission,
+  FileSaveType,
   getPlainTextFromHtml,
   isEmptyMessage,
   Permission,
@@ -127,7 +128,7 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
       const foundCommand = pluginManager.getCommandByName(commandName);
 
       if (foundCommand) {
-        if (await ctx.hasPermission(Permission.EXECUTE_PLUGIN_COMMANDS)) {
+        if (await ctx.hasPermission(Permission.USE_PLUGINS)) {
           const argsObject: Record<string, unknown> = {};
 
           if (foundCommand.args) {
@@ -229,7 +230,11 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
 
     if (limitedFiles.length > 0) {
       for (const tempFileId of limitedFiles) {
-        const newFile = await fileManager.saveFile(tempFileId, ctx.userId);
+        const newFile = await fileManager.saveFile(
+          tempFileId,
+          ctx.userId,
+          FileSaveType.MESSAGE
+        );
 
         await db.insert(messageFiles).values({
           messageId: message.id,
@@ -251,6 +256,7 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
       messageId: message.id,
       channelId: input.channelId,
       userId: ctx.userId,
+      pluginId: null,
       content: targetContent
     });
 
