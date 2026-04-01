@@ -244,11 +244,26 @@ body {
     margin-top: 0;
   }
 
-  img:not(.ProseMirror-separator) {
+  .emoji-image:not(.ProseMirror-separator) {
     height: 1.6em;
     width: 1.6em;
-    display: inline;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     vertical-align: middle;
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 1;
+  }
+
+  img.emoji-image:not(.ProseMirror-separator),
+  .emoji-image img:not(.ProseMirror-separator) {
+    height: 100%;
+    width: 100%;
+    display: block;
     object-fit: contain;
     border: none;
     outline: none;
@@ -271,7 +286,7 @@ body {
   font-size: 2.5rem;
   line-height: 1.2;
 
-  img:not(.ProseMirror-separator) {
+  .emoji-image:not(.ProseMirror-separator) {
     height: 1.2em;
     width: 1.2em;
   }
