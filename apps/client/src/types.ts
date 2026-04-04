@@ -60,6 +60,8 @@ export type TDeviceSettings = {
   noiseGateEnabled: boolean;
   noiseGateThresholdDb: number;
   shareSystemAudio: boolean;
+  restrictOwnAudio: boolean;
+  suppressLocalAudioPlayback: boolean;
   mirrorOwnVideo: boolean;
   screenResolution: Resolution;
   screenFramerate: number;
@@ -86,4 +88,10 @@ export type TMessageJumpToTarget = {
   channelId: number;
   messageId: number;
   isDm: boolean;
+  highlightTime?: number;
+};
+
+export type TReplyTarget = {
+  userId: number | null;
+  pluginId: string | null;
 };
