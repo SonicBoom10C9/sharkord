@@ -79,7 +79,7 @@ const MessageReplyPreviewWrapper = memo(
           <div className="relative flex w-10 shrink-0 justify-end self-stretch overflow-visible">
             <span
               aria-hidden
-              className="pointer-events-none absolute -bottom-2 -right-3 top-[16%] w-8 text-foreground/20 transition-colors group-hover:text-foreground/30 group-focus-within:text-foreground/55"
+              className="pointer-events-none absolute -bottom-2 -right-3 top-[10%] w-8 text-foreground/20 transition-colors group-hover:text-foreground/30 group-focus-within:text-foreground/55"
             >
               <svg
                 className="block h-full w-full overflow-visible"
