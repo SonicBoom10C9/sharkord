@@ -36,7 +36,8 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
       content: z.string(),
       channelId: z.number(),
       files: z.array(z.string()).default([]),
-      parentMessageId: z.number().optional()
+      parentMessageId: z.number().optional(),
+      replyToMessageId: z.number().optional()
     })
   )
   .mutation(async ({ input, ctx }) => {
@@ -74,6 +75,28 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
         code: 'BAD_REQUEST',
         message:
           'Cannot reply to a thread reply. Threads are only one level deep.'
+      });
+    }
+
+    if (input.replyToMessageId) {
+      const repliedMessage = await db
+        .select({
+          id: messages.id,
+          channelId: messages.channelId
+        })
+        .from(messages)
+        .where(eq(messages.id, input.replyToMessageId))
+        .limit(1)
+        .get();
+
+      invariant(repliedMessage, {
+        code: 'NOT_FOUND',
+        message: 'Reply target message not found.'
+      });
+
+      invariant(repliedMessage.channelId === input.channelId, {
+        code: 'BAD_REQUEST',
+        message: 'Reply target message must be in the same channel.'
       });
     }
 
@@ -120,10 +143,11 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
     let editable = true;
     let commandExecutor: ((messageId: number) => void) | undefined = undefined;
 
+    const plainText = getPlainTextFromHtml(input.content);
+
     if (enablePlugins) {
       // when plugins are enabled, need to check if the message is a command
       // this might be improved in the future with a more robust parser
-      const plainText = getPlainTextFromHtml(input.content);
       const { args, commandName } = parseCommandArgs(plainText);
       const foundCommand = pluginManager.getCommandByName(commandName);
 
@@ -221,6 +245,7 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
         content: targetContent,
         editable,
         parentMessageId: input.parentMessageId ?? null,
+        replyToMessageId: input.replyToMessageId ?? null,
         createdAt: Date.now()
       })
       .returning()
@@ -257,7 +282,8 @@ const sendMessageRoute = rateLimitedProcedure(protectedProcedure, {
       channelId: input.channelId,
       userId: ctx.userId,
       pluginId: null,
-      content: targetContent
+      content: targetContent,
+      textContent: plainText
     });
 
     return message.id;

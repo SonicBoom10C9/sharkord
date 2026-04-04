@@ -904,7 +904,8 @@ describe('plugin-manager', () => {
         channelId: 1,
         userId: 1,
         pluginId: null,
-        content: 'test message'
+        content: 'test message',
+        textContent: 'test message'
       });
 
       // the plugin-with-events tracks event counts via its get-counts command
@@ -927,7 +928,8 @@ describe('plugin-manager', () => {
         channelId: 1,
         userId: 1,
         pluginId: null,
-        content: 'test'
+        content: 'test',
+        textContent: 'test'
       });
 
       // get count
@@ -948,7 +950,8 @@ describe('plugin-manager', () => {
         channelId: 1,
         userId: 1,
         pluginId: null,
-        content: 'test2'
+        content: 'test2',
+        textContent: 'test2'
       });
 
       // since the plugin is unloaded, we can't query it, but we can verify
@@ -1048,6 +1051,94 @@ describe('plugin-manager', () => {
         .get();
 
       expect(deleted).toBeUndefined();
+    });
+
+    test('should let plugin send inline replies', async () => {
+      await pluginManager.load('plugin-message-actions');
+
+      const targetMessageId = await tdb
+        .insert(messages)
+        .values({
+          channelId: 1,
+          userId: 1,
+          content: 'inline reply target',
+          createdAt: Date.now()
+        })
+        .returning({ id: messages.id })
+        .get();
+
+      const { messageId } = (await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'send-message',
+        mockInvokerCtx,
+        {
+          channelId: 1,
+          content: 'plugin inline reply',
+          replyToMessageId: targetMessageId.id
+        }
+      )) as { messageId: number };
+
+      const created = await tdb
+        .select({
+          replyToMessageId: messages.replyToMessageId,
+          parentMessageId: messages.parentMessageId
+        })
+        .from(messages)
+        .where(eq(messages.id, messageId))
+        .get();
+
+      expect(created?.replyToMessageId).toBe(targetMessageId.id);
+      expect(created?.parentMessageId).toBeNull();
+    });
+
+    test('should let plugin send thread replies with inline target', async () => {
+      await pluginManager.load('plugin-message-actions');
+
+      const parent = await tdb
+        .insert(messages)
+        .values({
+          channelId: 1,
+          userId: 1,
+          content: 'thread parent',
+          createdAt: Date.now()
+        })
+        .returning({ id: messages.id })
+        .get();
+
+      const inlineTarget = await tdb
+        .insert(messages)
+        .values({
+          channelId: 1,
+          userId: 1,
+          content: 'inline target in thread',
+          createdAt: Date.now()
+        })
+        .returning({ id: messages.id })
+        .get();
+
+      const { messageId } = (await pluginManager.executeCommand(
+        'plugin-message-actions',
+        'send-message',
+        mockInvokerCtx,
+        {
+          channelId: 1,
+          content: 'plugin thread reply with inline target',
+          parentMessageId: parent.id,
+          replyToMessageId: inlineTarget.id
+        }
+      )) as { messageId: number };
+
+      const created = await tdb
+        .select({
+          replyToMessageId: messages.replyToMessageId,
+          parentMessageId: messages.parentMessageId
+        })
+        .from(messages)
+        .where(eq(messages.id, messageId))
+        .get();
+
+      expect(created?.parentMessageId).toBe(parent.id);
+      expect(created?.replyToMessageId).toBe(inlineTarget.id);
     });
   });
 
