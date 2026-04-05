@@ -1,7 +1,8 @@
-import { ActivityLogType, Permission } from '@sharkord/shared';
+import { ActivityLogType, OWNER_ROLE_ID, Permission } from '@sharkord/shared';
 import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { db } from '../../db';
+import { getUserRoleIds } from '../../db/queries/roles';
 import { users } from '../../db/schema';
 import { enqueueActivityLog } from '../../queues/activity-log';
 import { invariant } from '../../utils/invariant';
@@ -31,6 +32,12 @@ const resetPasswordRoute = protectedProcedure
     invariant(user, {
       code: 'NOT_FOUND',
       message: 'User not found'
+    });
+
+    const targetRoles = await getUserRoleIds(input.userId);
+    invariant(!targetRoles.includes(OWNER_ROLE_ID), {
+      code: 'FORBIDDEN',
+      message: 'Cannot reset the password of an owner.'
     });
 
     const hashedPassword = await Bun.password.hash(input.newPassword);
