@@ -14,7 +14,7 @@ import {
   UserStatus
 } from '@sharkord/shared';
 import { Button } from '@sharkord/ui';
-import { Gavel, Plus, Trash, UserMinus } from 'lucide-react';
+import { Gavel, KeyRound, Plus, Trash, UserMinus } from 'lucide-react';
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -149,6 +149,31 @@ const Header = memo(() => {
     }
   }, [user.id, refetch, isDeletedUser, t]);
 
+  const onResetPassword = useCallback(async () => {
+    const newPassword = await requestTextInput({
+      title: t('resetPasswordTitle'),
+      message: t('resetPasswordMsg'),
+      confirmLabel: t('resetPasswordConfirm'),
+      type: 'password'
+    });
+
+    if (!newPassword) {
+      return;
+    }
+
+    const trpc = getTRPCClient();
+
+    try {
+      await trpc.users.resetPassword.mutate({
+        userId: user.id,
+        newPassword
+      });
+      toast.success(t('resetPasswordSuccess'));
+    } catch (error) {
+      toast.error(getTrpcError(error, t('failedResetPassword')));
+    }
+  }, [user.id, t]);
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
@@ -174,6 +199,15 @@ const Header = memo(() => {
         >
           <Gavel className="h-4 w-4" />
           {user.banned ? t('unbanBtn') : t('banBtn')}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onResetPassword}
+          disabled={isOwnUser || isDeletedUser}
+        >
+          <KeyRound className="h-4 w-4" />
+          {t('resetPasswordBtn')}
         </Button>
         <Button
           variant="outline"
