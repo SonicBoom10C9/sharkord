@@ -5,3 +5,7 @@
 /DockerCenas
 /experiments
 .direnv/
+
+# Agentic workflow docs
+CLAUDE.md
+docs/CLAUDE.md

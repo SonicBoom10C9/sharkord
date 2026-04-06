@@ -365,6 +365,12 @@
   "unbanBtn": "Unban",
   "unbannedSuccess": "User unbanned successfully",
   "failedUnban": "Failed to unban user",
+  "resetPasswordTitle": "Reset Password",
+  "resetPasswordMsg": "Enter a new password for this user.",
+  "resetPasswordConfirm": "Reset",
+  "resetPasswordBtn": "Reset Password",
+  "resetPasswordSuccess": "Password reset successfully",
+  "failedResetPassword": "Failed to reset password",
   "deleteBtn": "Delete",
   "modViewAssignRoleBtn": "Assign Role",
 
