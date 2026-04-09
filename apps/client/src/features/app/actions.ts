@@ -251,3 +251,7 @@ export const togglePluginSlotDebug = () => {
   store.dispatch(appSliceActions.setPluginSlotDebug(next));
   setLocalStorageItemBool(LocalStorageKey.PLUGIN_SLOT_DEBUG, next);
 };
+
+export const setModifierKeysHeldMap = (keysDown: Record<string, boolean>) => {
+  store.dispatch(appSliceActions.setModifierKeysHeldMap(keysDown));
+};

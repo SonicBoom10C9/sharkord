@@ -26,6 +26,7 @@ export interface TAppState {
   voiceChatSidebarOpen: boolean;
   voiceChatChannelId: number | undefined;
   pluginSlotDebug: boolean;
+  modifierKeysHeldMap: Record<string, boolean>;
 }
 
 const initialState: TAppState = {
@@ -70,7 +71,8 @@ const initialState: TAppState = {
   pluginSlotDebug: getLocalStorageItemBool(
     LocalStorageKey.PLUGIN_SLOT_DEBUG,
     false
-  )
+  ),
+  modifierKeysHeldMap: { Shift: false, Control: false, Alt: false }
 };
 
 export const appSlice = createSlice({
@@ -156,6 +158,12 @@ export const appSlice = createSlice({
     },
     setPluginSlotDebug: (state, action: PayloadAction<boolean>) => {
       state.pluginSlotDebug = action.payload;
+    },
+    setModifierKeysHeldMap: (
+      state,
+      action: PayloadAction<Record<string, boolean>>
+    ) => {
+      state.modifierKeysHeldMap = action.payload;
     }
   }
 });

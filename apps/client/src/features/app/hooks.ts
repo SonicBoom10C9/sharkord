@@ -8,7 +8,10 @@ import {
   browserNotificationsForRepliesSelector,
   browserNotificationsSelector,
   devicesSelector,
+  isAltHeldSelector,
   isAutoConnectingSelector,
+  isCtrlHeldSelector,
+  isShiftHeldSelector,
   loadingPluginsSelector,
   messageJumpTargetSelector,
   modViewOpenSelector,
@@ -61,3 +64,9 @@ export const useVoiceChatSidebar = () =>
   useSelector(voiceChatSidebarDataSelector);
 
 export const usePluginSlotDebug = () => useSelector(pluginSlotDebugSelector);
+
+export const useIsShiftHeld = () => useSelector(isShiftHeldSelector);
+
+export const useIsCtrlHeld = () => useSelector(isCtrlHeldSelector);
+
+export const useIsAltHeld = () => useSelector(isAltHeldSelector);

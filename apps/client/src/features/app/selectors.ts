@@ -72,3 +72,12 @@ export const threadSidebarDataSelector = createSelector(
     channelId
   })
 );
+
+export const isShiftHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Shift ?? false;
+
+export const isCtrlHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Control ?? false;
+
+export const isAltHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Alt ?? false;
