@@ -40,6 +40,9 @@ export const browserNotificationsForMentionsSelector = (state: IRootState) =>
 export const browserNotificationsForDmsSelector = (state: IRootState) =>
   state.app.browserNotificationsForDms;
 
+export const browserNotificationsForRepliesSelector = (state: IRootState) =>
+  state.app.browserNotificationsForReplies;
+
 export const messageJumpTargetSelector = (state: IRootState) =>
   state.app.messageJumpTarget;
 
@@ -69,3 +72,12 @@ export const threadSidebarDataSelector = createSelector(
     channelId
   })
 );
+
+export const isShiftHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Shift ?? false;
+
+export const isCtrlHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Control ?? false;
+
+export const isAltHeldSelector = (state: IRootState) =>
+  state.app.modifierKeysHeldMap?.Alt ?? false;

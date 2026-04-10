@@ -21,10 +21,12 @@ export interface TAppState {
   browserNotifications: boolean;
   browserNotificationsForMentions: boolean;
   browserNotificationsForDms: boolean;
+  browserNotificationsForReplies: boolean;
   messageJumpTarget: TMessageJumpToTarget | undefined;
   voiceChatSidebarOpen: boolean;
   voiceChatChannelId: number | undefined;
   pluginSlotDebug: boolean;
+  modifierKeysHeldMap: Record<string, boolean>;
 }
 
 const initialState: TAppState = {
@@ -54,6 +56,10 @@ const initialState: TAppState = {
     LocalStorageKey.BROWSER_NOTIFICATIONS_FOR_DMS,
     false
   ),
+  browserNotificationsForReplies: getLocalStorageItemBool(
+    LocalStorageKey.BROWSER_NOTIFICATIONS_FOR_REPLIES,
+    false
+  ),
   messageJumpTarget: undefined,
   voiceChatSidebarOpen: getLocalStorageItemBool(
     LocalStorageKey.VOICE_CHAT_SIDEBAR_STATE,
@@ -65,7 +71,8 @@ const initialState: TAppState = {
   pluginSlotDebug: getLocalStorageItemBool(
     LocalStorageKey.PLUGIN_SLOT_DEBUG,
     false
-  )
+  ),
+  modifierKeysHeldMap: { Shift: false, Control: false, Alt: false }
 };
 
 export const appSlice = createSlice({
@@ -127,6 +134,12 @@ export const appSlice = createSlice({
     setBrowserNotificationsForDms: (state, action: PayloadAction<boolean>) => {
       state.browserNotificationsForDms = action.payload;
     },
+    setBrowserNotificationsForReplies: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      state.browserNotificationsForReplies = action.payload;
+    },
     setMessageJumpTarget: (
       state,
       action: PayloadAction<TMessageJumpToTarget | undefined>
@@ -145,6 +158,12 @@ export const appSlice = createSlice({
     },
     setPluginSlotDebug: (state, action: PayloadAction<boolean>) => {
       state.pluginSlotDebug = action.payload;
+    },
+    setModifierKeysHeldMap: (
+      state,
+      action: PayloadAction<Record<string, boolean>>
+    ) => {
+      state.modifierKeysHeldMap = action.payload;
     }
   }
 });
