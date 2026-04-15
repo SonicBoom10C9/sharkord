@@ -229,7 +229,7 @@ const Connect = memo(() => {
       </Card>
 
       <div className="flex justify-center items-center gap-2 text-xs text-muted-foreground select-none">
-        <span>v{VITE_APP_VERSION}</span>
+        <span>v{info?.version ?? VITE_APP_VERSION}</span>
         <a
           href="https://github.com/sharkord/sharkord"
           target="_blank"
