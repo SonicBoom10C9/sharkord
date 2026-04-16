@@ -27,6 +27,10 @@ import { getWsInfo } from '../helpers/get-ws-info';
 import { safeCompare } from '../helpers/safe-compare';
 import { logger } from '../logger';
 import { enqueueActivityLog } from '../queues/activity-log';
+import {
+  generateRecoveryCodes,
+  verifyRecoveryCode
+} from '../helpers/recovery-codes';
 import { invariant } from '../utils/invariant';
 import {
   createRateLimiter,
@@ -45,8 +49,10 @@ const zBody = z.object({
   password: z
     .string()
     .min(4, 'Password must be at least 4 characters long')
-    .max(128),
-  invite: z.string().optional()
+    .max(128)
+    .optional(),
+  invite: z.string().optional(),
+  recoveryCode: z.string().min(1).optional()
 });
 
 const loginRateLimiter = createRateLimiter({
@@ -124,6 +130,13 @@ const loginRouteHandler = async (
 ) => {
   const data = zBody.parse(await getJsonBody(req));
 
+  if (!data.password && !data.recoveryCode) {
+    throw new HttpValidationError(
+      'password',
+      'Password or recovery code is required'
+    );
+  }
+
   if (data.identity === DELETED_USER_IDENTITY_AND_NAME) {
     throw new HttpValidationError('identity', 'This identity is reserved');
   }
@@ -158,7 +171,13 @@ const loginRouteHandler = async (
     );
   }
 
+  let isNewUser = false;
+
   if (!existingUser) {
+    if (data.recoveryCode) {
+      throw new HttpValidationError('identity', 'User not found');
+    }
+
     let inviteRoleId: number | null = null;
 
     const result = await isInviteValid(data.invite);
@@ -180,9 +199,10 @@ const loginRouteHandler = async (
     }
 
     // user doesn't exist, but registration is open OR invite was valid - create the user automatically
+    isNewUser = true;
     existingUser = await registerUser(
       data.identity,
-      data.password,
+      data.password!,
       data.invite,
       inviteRoleId,
       connectionInfo?.ip
@@ -220,51 +240,78 @@ const loginRouteHandler = async (
     );
   }
 
-  // temporary logic to migrate old SHA256 password hashes to argon2 on login
-  const isPasswordArgon = existingUser.password.startsWith('$argon2');
+  let authenticated = false;
 
-  let passwordMatches = false;
-
-  if (isPasswordArgon) {
-    passwordMatches = await Bun.password.verify(
-      data.password,
-      existingUser.password
+  if (data.recoveryCode) {
+    authenticated = await verifyRecoveryCode(
+      existingUser.id,
+      data.recoveryCode
     );
+
+    if (authenticated) {
+      enqueueActivityLog({
+        type: ActivityLogType.USER_USED_RECOVERY_CODE,
+        userId: existingUser.id,
+        ip: connectionInfo?.ip
+      });
+    }
   } else {
-    logger.info(
-      `${chalk.dim('[Auth]')} User "${existingUser.identity}" is using legacy SHA256 password hash, upgrading to argon2...`
-    );
+    // temporary logic to migrate old SHA256 password hashes to argon2 on login
+    const isPasswordArgon = existingUser.password.startsWith('$argon2');
 
-    const hashInputPassword = await sha256(data.password);
+    if (isPasswordArgon) {
+      authenticated = await Bun.password.verify(
+        data.password!,
+        existingUser.password
+      );
+    } else {
+      logger.info(
+        `${chalk.dim('[Auth]')} User "${existingUser.identity}" is using legacy SHA256 password hash, upgrading to argon2...`
+      );
 
-    passwordMatches = safeCompare(hashInputPassword, existingUser.password);
+      const hashInputPassword = await sha256(data.password!);
 
-    if (passwordMatches) {
-      const argon2Password = await Bun.password.hash(data.password);
+      authenticated = safeCompare(hashInputPassword, existingUser.password);
 
-      await db
-        .update(users)
-        .set({
-          password: argon2Password
-        })
-        .where(eq(users.id, existingUser.id));
+      if (authenticated) {
+        const argon2Password = await Bun.password.hash(data.password!);
+
+        await db
+          .update(users)
+          .set({
+            password: argon2Password
+          })
+          .where(eq(users.id, existingUser.id));
+      }
     }
   }
 
-  if (!passwordMatches) {
+  if (!authenticated) {
     logger.info(
-      `${chalk.dim('[Auth]')} Failed login attempt for user "${existingUser.identity}" due to invalid password. (IP: ${connectionInfo?.ip || 'unknown'})`
+      `${chalk.dim('[Auth]')} Failed login attempt for user "${existingUser.identity}" due to invalid ${data.recoveryCode ? 'recovery code' : 'password'}. (IP: ${connectionInfo?.ip || 'unknown'})`
     );
 
-    throw new HttpValidationError('password', 'Invalid password');
+    throw new HttpValidationError(
+      data.recoveryCode ? 'recoveryCode' : 'password',
+      data.recoveryCode ? 'Invalid recovery code' : 'Invalid password'
+    );
   }
 
   const token = jwt.sign({ userId: existingUser.id }, await getServerToken(), {
     expiresIn: '604800s' // 7 days
   });
 
+  const response: { success: true; token: string; recoveryCodes?: string[] } = {
+    success: true,
+    token
+  };
+
+  if (isNewUser) {
+    response.recoveryCodes = await generateRecoveryCodes(existingUser.id);
+  }
+
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ success: true, token }));
+  res.end(JSON.stringify(response));
 
   return res;
 };

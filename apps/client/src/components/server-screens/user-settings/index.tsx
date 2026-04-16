@@ -8,6 +8,7 @@ import { Notifications } from './notifications';
 import { Others } from './others';
 import { Password } from './password';
 import { Profile } from './profile';
+import { RecoveryCodes } from './recovery-codes';
 
 type TUserSettingsProps = TServerScreenBaseProps;
 
@@ -36,6 +37,7 @@ const UserSettings = memo(({ close }: TUserSettingsProps) => {
           </TabsContent>
           <TabsContent value="password" className="space-y-6">
             <Password />
+            <RecoveryCodes />
           </TabsContent>
           <TabsContent value="notifications" className="space-y-6">
             <Notifications />

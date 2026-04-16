@@ -29,6 +29,7 @@ import {
   Label,
   Switch
 } from '@sharkord/ui';
+import { Copy } from 'lucide-react';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -50,6 +51,8 @@ const Connect = memo(() => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
   const info = useInfo();
 
   const inviteCode = useMemo(() => {
@@ -70,9 +73,10 @@ const Connect = memo(() => {
         },
         body: JSON.stringify({
           identity: values.identity,
-          password: values.password,
+          password: useRecovery ? undefined : values.password,
           invite: inviteCode,
-          autoLogin: values.autoLogin || undefined
+          autoLogin: values.autoLogin || undefined,
+          recoveryCode: useRecovery ? values.password : undefined
         })
       });
 
@@ -83,7 +87,21 @@ const Connect = memo(() => {
         return;
       }
 
-      const data = (await response.json()) as { token: string };
+      const data = (await response.json()) as {
+        token: string;
+        recoveryCodes?: string[];
+      };
+
+      if (data.recoveryCodes) {
+        setRecoveryCodes(data.recoveryCodes);
+        setSessionStorageItem(SessionStorageKey.TOKEN, data.token);
+        setLocalStorageItemBool(LocalStorageKey.AUTO_LOGIN, values.autoLogin);
+        if (values.autoLogin) {
+          setLocalStorageItem(LocalStorageKey.AUTO_LOGIN_TOKEN, data.token);
+        }
+        setLoading(false);
+        return;
+      }
 
       setSessionStorageItem(SessionStorageKey.TOKEN, data.token);
       setLocalStorageItemBool(LocalStorageKey.AUTO_LOGIN, values.autoLogin);
@@ -109,6 +127,7 @@ const Connect = memo(() => {
     values.autoLogin,
     setErrors,
     inviteCode,
+    useRecovery,
     t
   ]);
 
@@ -119,6 +138,52 @@ const Connect = memo(() => {
 
     return '/logo.webp';
   }, [info]);
+
+  if (recoveryCodes) {
+    return (
+      <div className="flex flex-col gap-2 justify-center items-center h-full relative">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-center">
+              {t('recoveryCodesTitle')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t('recoveryCodesMsg')}
+            </p>
+            <div className="grid grid-cols-2 gap-2 font-mono text-sm bg-muted p-4 rounded-md">
+              {recoveryCodes.map((code) => (
+                <span key={code}>{code}</span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(recoveryCodes.join('\n'));
+                  toast.success(t('codesCopied', { ns: 'settings' }));
+                }}
+              >
+                <Copy className="h-4 w-4" />
+                {t('copyCodesBtn', { ns: 'settings' })}
+              </Button>
+            </div>
+            <Button
+              className="w-full"
+              onClick={async () => {
+                setRecoveryCodes(null);
+                await connect();
+              }}
+            >
+              {t('recoveryCodesDismiss')}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center h-full relative">
@@ -162,15 +227,31 @@ const Connect = memo(() => {
                 data-testid={TestId.CONNECT_IDENTITY_INPUT}
               />
             </Group>
-            <Group label={t('passwordLabel')}>
+            <Group
+              label={
+                useRecovery ? t('recoveryCodeLabel') : t('passwordLabel')
+              }
+            >
               <Input
                 {...r('password')}
-                type="password"
-                autoComplete="current-password"
+                type={useRecovery ? 'text' : 'password'}
+                autoComplete={
+                  useRecovery ? 'off' : 'current-password'
+                }
                 onEnter={onConnectClick}
                 data-testid={TestId.CONNECT_PASSWORD_INPUT}
               />
             </Group>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:underline text-left w-fit"
+              onClick={() => {
+                setUseRecovery(!useRecovery);
+                onChange('password', '');
+              }}
+            >
+              {useRecovery ? t('usePassword') : t('useRecoveryCode')}
+            </button>
           </form>
 
           <div

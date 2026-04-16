@@ -490,6 +490,24 @@ const directMessages = sqliteTable(
   ]
 );
 
+const recoveryCodes = sqliteTable(
+  'recovery_codes',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    codeHash: text('code_hash').notNull(),
+    used: integer('used', { mode: 'boolean' }).notNull().default(false),
+    usedAt: integer('used_at'),
+    createdAt: integer('created_at').notNull()
+  },
+  (t) => [
+    index('recovery_codes_user_idx').on(t.userId),
+    index('recovery_codes_user_used_idx').on(t.userId, t.used)
+  ]
+);
+
 const pluginData = sqliteTable('plugin_data', {
   pluginId: text('plugin_id').notNull().primaryKey(),
   enabled: integer('enabled', { mode: 'boolean' }).notNull().default(false),
@@ -515,6 +533,7 @@ export {
   messageReactions,
   messages,
   pluginData,
+  recoveryCodes,
   rolePermissions,
   roles,
   settings,
