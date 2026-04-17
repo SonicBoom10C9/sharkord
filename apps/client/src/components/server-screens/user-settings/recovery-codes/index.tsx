@@ -74,7 +74,7 @@ const RecoveryCodes = memo(() => {
 
         {codes && (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2 font-mono text-sm bg-muted p-4 rounded-md">
+            <div className="grid grid-cols-2 gap-2 font-mono text-xs bg-muted p-4 rounded-md break-all">
               {codes.map((code) => (
                 <span key={code}>{code}</span>
               ))}

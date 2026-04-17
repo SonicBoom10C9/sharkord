@@ -168,7 +168,7 @@ const Connect = memo(() => {
   if (recoveryCodes) {
     return (
       <div className="flex flex-col gap-2 justify-center items-center h-full relative">
-        <Card className="w-full max-w-sm">
+        <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center">
               {t('recoveryCodesTitle')}
@@ -178,7 +178,7 @@ const Connect = memo(() => {
             <p className="text-sm text-muted-foreground">
               {t('recoveryCodesMsg')}
             </p>
-            <div className="grid grid-cols-2 gap-2 font-mono text-sm bg-muted p-4 rounded-md">
+            <div className="grid grid-cols-2 gap-2 font-mono text-xs bg-muted p-4 rounded-md break-all">
               {recoveryCodes.map((code) => (
                 <span key={code}>{code}</span>
               ))}
