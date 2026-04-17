@@ -228,16 +228,12 @@ const Connect = memo(() => {
               />
             </Group>
             <Group
-              label={
-                useRecovery ? t('recoveryCodeLabel') : t('passwordLabel')
-              }
+              label={useRecovery ? t('recoveryCodeLabel') : t('passwordLabel')}
             >
               <Input
                 {...r('password')}
                 type={useRecovery ? 'text' : 'password'}
-                autoComplete={
-                  useRecovery ? 'off' : 'current-password'
-                }
+                autoComplete={useRecovery ? 'off' : 'current-password'}
                 onEnter={onConnectClick}
                 data-testid={TestId.CONNECT_PASSWORD_INPUT}
               />

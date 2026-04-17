@@ -24,13 +24,13 @@ import {
   users
 } from '../db/schema';
 import { getWsInfo } from '../helpers/get-ws-info';
-import { safeCompare } from '../helpers/safe-compare';
-import { logger } from '../logger';
-import { enqueueActivityLog } from '../queues/activity-log';
 import {
   generateRecoveryCodes,
   verifyRecoveryCode
 } from '../helpers/recovery-codes';
+import { safeCompare } from '../helpers/safe-compare';
+import { logger } from '../logger';
+import { enqueueActivityLog } from '../queues/activity-log';
 import { invariant } from '../utils/invariant';
 import {
   createRateLimiter,

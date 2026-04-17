@@ -13,9 +13,7 @@ const hashCode = async (code: string): Promise<string> => {
   return (await Bun.password.hash(code)).toString();
 };
 
-const generateRecoveryCodes = async (
-  userId: number
-): Promise<string[]> => {
+const generateRecoveryCodes = async (userId: number): Promise<string[]> => {
   // Delete any existing codes for this user
   await db.delete(recoveryCodes).where(eq(recoveryCodes.userId, userId));
 
@@ -72,8 +70,4 @@ const getRemainingCodeCount = async (userId: number): Promise<number> => {
   return codes.filter((c) => !c.used).length;
 };
 
-export {
-  generateRecoveryCodes,
-  getRemainingCodeCount,
-  verifyRecoveryCode
-};
+export { generateRecoveryCodes, getRemainingCodeCount, verifyRecoveryCode };
