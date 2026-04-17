@@ -5,7 +5,6 @@ import z from 'zod';
 import { config } from '../config';
 import { getWsInfo } from '../helpers/get-ws-info';
 import { logger } from '../logger';
-import { IS_DOCKER } from '../utils/env';
 import { healthRouteHandler } from './healthz';
 import {
   getRequestPathname,
@@ -161,7 +160,7 @@ const createHttpServer = async (port: number = config.server.port) => {
       process.exit(0);
     });
 
-    server.listen(port, IS_DOCKER ? '127.0.0.1' : undefined);
+    server.listen(port);
   });
 };
 
