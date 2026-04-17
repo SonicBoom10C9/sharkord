@@ -57,16 +57,14 @@ const Connect = memo(() => {
   const cooldownRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const info = useInfo();
 
+  const isCoolingDown = cooldown > 0;
   useEffect(() => {
-    if (cooldown <= 0) {
-      clearInterval(cooldownRef.current);
-      return;
-    }
+    if (!isCoolingDown) return;
     cooldownRef.current = setInterval(() => {
       setCooldown((c) => (c <= 1 ? 0 : c - 1));
     }, 1000);
     return () => clearInterval(cooldownRef.current);
-  }, [cooldown > 0]);
+  }, [isCoolingDown]);
 
   const inviteCode = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
