@@ -30,7 +30,7 @@ import {
   Switch
 } from '@sharkord/ui';
 import { Copy } from 'lucide-react';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -53,7 +53,20 @@ const Connect = memo(() => {
   const [loading, setLoading] = useState(false);
   const [useRecovery, setUseRecovery] = useState(false);
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const info = useInfo();
+
+  useEffect(() => {
+    if (cooldown <= 0) {
+      clearInterval(cooldownRef.current);
+      return;
+    }
+    cooldownRef.current = setInterval(() => {
+      setCooldown((c) => (c <= 1 ? 0 : c - 1));
+    }, 1000);
+    return () => clearInterval(cooldownRef.current);
+  }, [cooldown > 0]);
 
   const inviteCode = useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -81,9 +94,22 @@ const Connect = memo(() => {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = parseInt(
+            response.headers.get('Retry-After') || '60',
+            10
+          );
+          setCooldown(retryAfter);
+          return;
+        }
         const data = await response.json();
-
-        setErrors(data.errors || {});
+        const errors = data.errors || {};
+        // Map server 'recoveryCode' field to the 'password' form field
+        if (errors.recoveryCode) {
+          errors.password = errors.recoveryCode;
+          delete errors.recoveryCode;
+        }
+        setErrors(errors);
         return;
       }
 
@@ -271,14 +297,26 @@ const Connect = memo(() => {
               </Alert>
             )}
 
+            {cooldown > 0 && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {t('rateLimited', { seconds: cooldown })}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Button
               className="w-full"
               variant="outline"
               onClick={onConnectClick}
-              disabled={loading || !values.identity || !values.password}
+              disabled={
+                loading || cooldown > 0 || !values.identity || !values.password
+              }
               data-testid={TestId.CONNECT_BUTTON}
             >
-              {t('connectBtn')}
+              {cooldown > 0
+                ? t('cooldownBtn', { seconds: cooldown })
+                : t('connectBtn')}
             </Button>
 
             {!info?.allowNewUsers && (
