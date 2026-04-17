@@ -4,9 +4,10 @@ import { db } from '../db';
 import { recoveryCodes } from '../db/schema';
 
 const RECOVERY_CODE_COUNT = 8;
+const MAX_FAILED_ATTEMPTS = 10;
 
 const generateCode = (): string => {
-  return crypto.randomBytes(4).toString('hex'); // 8 hex chars, e.g. "a1b2c3d4"
+  return crypto.randomBytes(16).toString('hex'); // 32 hex chars, 128 bits
 };
 
 const hashCode = async (code: string): Promise<string> => {
@@ -14,7 +15,6 @@ const hashCode = async (code: string): Promise<string> => {
 };
 
 const generateRecoveryCodes = async (userId: number): Promise<string[]> => {
-  // Delete any existing codes for this user
   await db.delete(recoveryCodes).where(eq(recoveryCodes.userId, userId));
 
   const codes: string[] = [];
@@ -46,14 +46,40 @@ const verifyRecoveryCode = async (
 
   const unusedCodes = unused.filter((c) => !c.used);
 
+  // Constant-time: always verify against all unused codes
+  let matchedId: number | null = null;
   for (const row of unusedCodes) {
     const matches = await Bun.password.verify(code, row.codeHash);
-    if (matches) {
+    if (matches && matchedId === null) {
+      matchedId = row.id;
+    }
+  }
+
+  if (matchedId !== null) {
+    // Valid code — mark used, reset failed attempts
+    await db
+      .update(recoveryCodes)
+      .set({ used: true, usedAt: Date.now() })
+      .where(eq(recoveryCodes.id, matchedId));
+    await db
+      .update(recoveryCodes)
+      .set({ failedAttempts: 0 })
+      .where(eq(recoveryCodes.userId, userId));
+    return true;
+  }
+
+  // Invalid attempt — increment failed counter on all unused codes
+  const failedCount = (unusedCodes[0]?.failedAttempts ?? 0) + 1;
+
+  if (failedCount >= MAX_FAILED_ATTEMPTS) {
+    // Invalidate all remaining codes
+    await db.delete(recoveryCodes).where(eq(recoveryCodes.userId, userId));
+  } else {
+    for (const row of unusedCodes) {
       await db
         .update(recoveryCodes)
-        .set({ used: true, usedAt: Date.now() })
+        .set({ failedAttempts: failedCount })
         .where(eq(recoveryCodes.id, row.id));
-      return true;
     }
   }
 

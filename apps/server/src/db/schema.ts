@@ -500,6 +500,7 @@ const recoveryCodes = sqliteTable(
     codeHash: text('code_hash').notNull(),
     used: integer('used', { mode: 'boolean' }).notNull().default(false),
     usedAt: integer('used_at'),
+    failedAttempts: integer('failed_attempts').notNull().default(0),
     createdAt: integer('created_at').notNull()
   },
   (t) => [

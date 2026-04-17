@@ -1,0 +1,1 @@
+ALTER TABLE `recovery_codes` ADD `failed_attempts` integer DEFAULT 0 NOT NULL;
