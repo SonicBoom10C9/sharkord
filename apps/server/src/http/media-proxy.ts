@@ -71,10 +71,7 @@ const mediaProxyHandler = async (
           return sendJsonError(res, 502, 'Too many redirects');
         }
 
-        const location = new URL(
-          upstream.headers.get('location')!,
-          finalUrl
-        );
+        const location = new URL(upstream.headers.get('location')!, finalUrl);
 
         if (location.protocol !== 'https:') {
           return sendJsonError(res, 403, 'Redirect to non-HTTPS rejected');
