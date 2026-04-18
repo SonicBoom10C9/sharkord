@@ -44,13 +44,10 @@ const mediaProxyHandler = async (
 
   try {
     let finalUrl = targetUrl;
-    let redirects = 0;
     const MAX_REDIRECTS = 5;
-    let upstream: Response;
 
-    // manually follow redirects, re-validating each hop against the allowlist
-    while (true) {
-      upstream = await fetch(finalUrl, {
+    const fetchWithHeaders = (url: string) =>
+      fetch(url, {
         signal: AbortSignal.timeout(PROXY_TIMEOUT_MS),
         headers: {
           Accept: '*/*',
@@ -60,32 +57,29 @@ const mediaProxyHandler = async (
         redirect: 'manual'
       });
 
-      if (
+    // manually follow redirects, re-validating each hop against the allowlist
+    let upstream = await fetchWithHeaders(finalUrl);
+
+    for (let i = 0; i < MAX_REDIRECTS; i++) {
+      const isRedirect =
         upstream.status >= 300 &&
         upstream.status < 400 &&
-        upstream.headers.get('location')
-      ) {
-        redirects++;
+        upstream.headers.get('location');
 
-        if (redirects > MAX_REDIRECTS) {
-          return sendJsonError(res, 502, 'Too many redirects');
-        }
+      if (!isRedirect) break;
 
-        const location = new URL(upstream.headers.get('location')!, finalUrl);
+      const location = new URL(upstream.headers.get('location')!, finalUrl);
 
-        if (location.protocol !== 'https:') {
-          return sendJsonError(res, 403, 'Redirect to non-HTTPS rejected');
-        }
-
-        if (!ALLOWED_DOMAINS.has(location.hostname)) {
-          return sendJsonError(res, 403, 'Redirect to disallowed domain');
-        }
-
-        finalUrl = location.toString();
-        continue;
+      if (location.protocol !== 'https:') {
+        return sendJsonError(res, 403, 'Redirect to non-HTTPS rejected');
       }
 
-      break;
+      if (!ALLOWED_DOMAINS.has(location.hostname)) {
+        return sendJsonError(res, 403, 'Redirect to disallowed domain');
+      }
+
+      finalUrl = location.toString();
+      upstream = await fetchWithHeaders(finalUrl);
     }
 
     if (!upstream.ok) {
