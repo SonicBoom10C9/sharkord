@@ -15,9 +15,11 @@ import { infoRouteHandler } from './info';
 import { interfaceRouteHandler } from './interface';
 import { loginRouteHandler } from './login';
 import { manifestRouteHandler } from './manifest';
+import { mediaProxyHandler } from './media-proxy';
 import { pluginBundleRouteHandler } from './plugin-bundle';
 import { pluginsComponentsRouteHandler } from './plugins-components';
 import { publicRouteHandler } from './public';
+import { tweetHandler } from './tweet';
 import { uploadFileRouteHandler } from './upload';
 import { HttpValidationError } from './utils';
 
@@ -40,13 +42,15 @@ const routeHandlers: Partial<
     exact: {
       '/healthz': (req, res) => healthRouteHandler(req, res),
       '/info': (req, res) => infoRouteHandler(req, res),
-      '/manifest.json': (req, res) => manifestRouteHandler(req, res)
+      '/manifest.json': (req, res) => manifestRouteHandler(req, res),
+      '/media-proxy': (req, res) => mediaProxyHandler(req, res)
     },
     prefix: {
       '/public': (req, res) => publicRouteHandler(req, res),
       '/plugin-components': (req, res) =>
         pluginsComponentsRouteHandler(req, res),
-      '/plugin-bundle': (req, res) => pluginBundleRouteHandler(req, res)
+      '/plugin-bundle': (req, res) => pluginBundleRouteHandler(req, res),
+      '/tweet': (req, res) => tweetHandler(req, res)
     }
   },
   POST: {

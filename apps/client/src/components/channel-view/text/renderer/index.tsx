@@ -123,6 +123,21 @@ const MessageRenderer = memo(
 
           if (!isAllowedType) return undefined;
 
+          // skip Twitter/X media — already handled by the tweet embed
+          try {
+            const host = new URL(metadata.url).hostname;
+
+            if (
+              host.endsWith('twimg.com') ||
+              host.endsWith('x.com') ||
+              host.endsWith('twitter.com')
+            ) {
+              return undefined;
+            }
+          } catch {
+            // ignore parse errors
+          }
+
           return {
             type: metadata.mediaType,
             url: metadata.url

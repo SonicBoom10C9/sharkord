@@ -23,13 +23,15 @@ const enqueueLogin = (userId: number, info: TConnectionInfo | undefined) => {
     const { ip, ...rest } = info;
     const ipInfo = ip ? await getIpInfo(ip) : undefined;
 
+    const { ip: _ipInfoIp, ...ipGeo } = ipInfo ?? {};
+
     await db
       .insert(logins)
       .values({
         userId,
         ip,
         ...rest,
-        ...ipInfo,
+        ...ipGeo,
         createdAt: Date.now()
       })
       .returning()

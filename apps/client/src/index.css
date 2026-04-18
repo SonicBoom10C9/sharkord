@@ -302,7 +302,12 @@ body {
 
 .react-tweet-theme {
   margin: 0 !important;
+  --tweet-body-font-size: 0.875rem;
+  --tweet-body-line-height: 1.25rem;
+  --tweet-header-font-size: 0.8125rem;
+  --tweet-header-line-height: 1.125rem;
 }
+
 
 /* speaking indicators */
 
